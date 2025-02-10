@@ -39,3 +39,14 @@ The Smart Study Planner is designed to assist students in managing their academi
     
 📌[Project Diagrams](URL)
 
+👥 Developers
+
+| Name                  | Role        | GitHub Profile |
+|----------------------|------------|---------------|
+| **Giducos, Janine**         | Android  | [@XylarNova](https://github.com/XylarNova) |
+| **Abarquez, Mykha**         | Backend  | [@AbarquezMyk](https://github.com/AbarquezMyk) |
+| **Garcia,Gianne Andrea** | ReactJS  | [@gianneA](https://github.com/gianneA) |
+
+
+
+
