@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import Axios for API calls
 
 export default function Login() {
   const navigate = useNavigate();
@@ -33,9 +34,26 @@ export default function Login() {
   }, []);
 
   // Handle Sign In
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     if (email && password) {
-      navigate("/");
+      try {
+        // Make a POST request to the backend
+        const response = await axios.post("http://localhost:8080/api/auth/login", {
+          email,
+          password,
+        });
+
+        // Handle success response
+        console.log(response.data.message);
+        alert("Login successful!");
+        navigate("/dashboard"); // Navigate to the dashboard or home page
+      } catch (error) {
+        // Handle error response
+        console.error(error.response?.data?.message || "Login failed");
+        alert(error.response?.data?.message || "Invalid credentials");
+      }
+    } else {
+      alert("Please fill in all fields.");
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import Axios for API calls
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -34,15 +35,32 @@ export default function SignUp() {
     });
   }, []);
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (username && fullname && email && password && confirmPassword) {
       if (password === confirmPassword) {
-        // Proceed with sign-up process (e.g., call an API)
-        console.log("Signed up successfully");
-        navigate("/welcome"); // Navigate after successful sign-up
+        try {
+          // Use relative path for the API call
+          const response = await axios.post("/api/auth/register", {
+            username,
+            fullname,
+            email,
+            password,
+          });
+
+          // Handle success response
+          console.log(response.data.message);
+          alert("User registered successfully!");
+          navigate("/welcome"); // Navigate after successful sign-up
+        } catch (error) {
+          // Handle error response
+          console.error(error.response?.data?.message || "Registration failed");
+          alert(error.response?.data?.message || "Registration failed");
+        }
       } else {
         alert("Passwords do not match.");
       }
+    } else {
+      alert("Please fill in all fields.");
     }
   };
 
