@@ -67,18 +67,11 @@ const Tasks = () => {
       {/* Sidebar */}
       <aside className={`bg-[#f6a800] text-black px-3 py-4 flex flex-col justify-between transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'}`}>
         <div className="flex flex-col items-center">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className={`text-xl mb-2 self-end ${collapsed ? 'mr-0' : 'mr-2'}`}
-          >
+          <button onClick={() => setCollapsed(!collapsed)} className={`text-xl mb-2 self-end ${collapsed ? 'mr-0' : 'mr-2'}`}>
             <FaBars />
           </button>
           <div className={`transition-all duration-300 ${collapsed ? 'mb-3' : 'mb-6'}`}>
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className={`object-contain ${collapsed ? 'w-10 h-10' : 'w-32 h-32'}`}
-            />
+            <img src="/logo.png" alt="Logo" className={`object-contain ${collapsed ? 'w-10 h-10' : 'w-32 h-32'}`} />
           </div>
           <nav className={`space-y-3 text-base w-full ${collapsed ? 'px-0' : 'px-2'}`}>
             <NavItem icon={<FaHome />} label="Dashboard" path="/dashboard" isActive={isActive} collapsed={collapsed} navigate={navigate} />
@@ -97,17 +90,29 @@ const Tasks = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 bg-yellow-50 space-y-10">
-        <div className="text-4xl font-extrabold text-yellow-500">Tasks</div>
+      <main className="flex-1 p-10 bg-yellow-50 space-y-10">
+        {/* Header same as Dashboard */}
+        <div className="flex justify-between items-center flex-wrap gap-4">
+          <h1 className="text-4xl font-extrabold text-yellow-500 drop-shadow">Tasks</h1>
+          <div className="flex gap-3 items-center">
+            <input
+              type="text"
+              placeholder="Search..."
+              className="px-4 py-2 rounded-md shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <button className="bg-black text-white px-4 py-2 rounded-md hover:scale-105 transition">🔍</button>
+            <button className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-md font-semibold shadow transition">
+              Add Task
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col lg:flex-row justify-between space-y-10 lg:space-y-0 lg:space-x-10">
           {/* Task Section */}
           <div className="bg-white rounded-xl shadow p-6 w-full lg:w-2/3">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">My Tasks <span className="text-gray-400">(0{tasks.length})</span></h2>
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded-lg font-semibold shadow">Add Task</button>
             </div>
-
             <div className="space-y-2">
               {tasks.map(task => (
                 <div key={task.id} className={`flex flex-col md:flex-row md:items-center justify-between rounded-md px-4 py-3 ${task.color}`}>
@@ -121,7 +126,6 @@ const Tasks = () => {
                       {task.priority}
                     </span>
                   </div>
-
                   <div className="flex flex-col md:flex-row md:items-center justify-end gap-3 w-full md:w-1/2">
                     <div className="w-full">
                       <div className="relative group w-full bg-gray-200 h-2 rounded-full">
