@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* === Base Styles === */
+body {
+  font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+}
+
+/* === Bee Floating (Hero Bee) === */
+@keyframes bee-float {
+  0%   { transform: translateY(0) scale(1); }
+  50%  { transform: translateY(-10px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* === Smooth Floating Background Bee === */
+@keyframes float {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+/* === Bee Path Animations (NEW!) === */
+@keyframes beeFly1 {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  30%  { transform: translate(-20px, -10px) rotate(-15deg); }
+  60%  { transform: translate(25px, -20px) rotate(20deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes beeFly2 {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  40%  { transform: translate(30px, 10px) rotate(15deg); }
+  70%  { transform: translate(-20px, 30px) rotate(-10deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes beeFly3 {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(15px, -15px) rotate(10deg); }
+  50%  { transform: translate(-15px, 25px) rotate(-10deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Wiggle wings */
+@keyframes wing-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+.bee-wiggle {
+  animation: wing-wiggle 0.5s ease-in-out infinite;
+}
+
+/* Glow trail */
+.bee-glow {
+  filter: drop-shadow(0 0 5px rgba(255, 234, 0, 0.6));
+}
+
+/* === Reusable Classes === */
+
+.floating-bee {
+  animation: bee-float 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.hero-glow {
+  filter: drop-shadow(0 0 0.5rem rgba(251, 191, 36, 0.6));
+}
+
+.shadow-soft {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* === Random Bee Styling === */
+.bee {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  pointer-events: none;
+  animation-duration: 6s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  z-index: 40;
+}
+
+
+/* === Navbar Styles === */
+.navbar {
+  background-color: #ffdd33; /* Yellow background */
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c2c2c;
+}
+
+.navbar .menu {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar .menu-item {
+  color: #2c2c2c;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.navbar .menu-item:hover,
+.navbar .menu-item.active {
+  color: #ff9900; /* Active color */
+}
+
+/* === Dashboard Content Styles === */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding: 30px;
+  background-color: #fef2d0;
+}
+
+.dashboard .task-section,
+.dashboard .calendar-section,
+.dashboard .class-schedule {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard .task-section {
+  width: 60%;
+}
+
+.dashboard .calendar-section,
+.dashboard .class-schedule {
+  width: 35%;
+}
+
+/* === Indicator for Active Page === */
+.indicator {
+  display: inline-block;
+  width: 5px;
+  height: 100%;
+  background-color: #ff9900;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
