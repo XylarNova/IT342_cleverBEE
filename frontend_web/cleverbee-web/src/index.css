@@ -91,38 +91,26 @@ body {
 
 
 /* === Navbar Styles === */
-.navbar {
-  background-color: #ffdd33; /* Yellow background */
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+
+.tooltip-text {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  display: none;
 }
 
-.navbar .logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2c2c2c;
-}
-
-.navbar .menu {
-  display: flex;
-  gap: 20px;
-}
-
-.navbar .menu-item {
-  color: #2c2c2c;
-  text-decoration: none;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.navbar .menu-item:hover,
-.navbar .menu-item.active {
-  color: #ff9900; /* Active color */
+.group:hover .tooltip-text {
+  display: block;
 }
 
 /* === Dashboard Content Styles === */
@@ -161,5 +149,174 @@ body {
   position: absolute;
   left: 0;
   top: 0;
+}
+
+/* === Reusable Modal Styles === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* or rgba(255, 248, 185, 0.5) if you want yellow tint */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-box {
+  background-color: #fffdfa;
+  border: 3px solid #f6a800;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 28rem;
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3); /* soft yellow glow */
+  position: relative;
+}
+
+
+/* === Custom Yellow Scrollbar === */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff9db; /* pale yellow */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #f6a800; /* CleverBee yellow */
+  border-radius: 10px;
+  border: 2px solid #fff3c4;
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #f6a800 #fff9db;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite;
+}
+
+
+.btn-back {
+  position: absolute;
+  top: 1.5rem; /* top-6 */
+  left: 1.5rem; /* left-6 */
+  background-color: #ffffff; /* bg-white */
+  color: #ca8a04; /* text-yellow-600 */
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* shadow-md */
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 600; /* font-semibold */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-back:hover {
+  background-color: #fef08a; /* hover:bg-yellow-100 */
+}
+
+
+.add-button {
+  background-color: #facc15; /* Tailwind yellow-400 */
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.add-button:hover {
+  background-color: #fbbf24; /* Tailwind yellow-500 */
+}
+
+.confirm-modal {
+  background-color: #fff;
+  border: 3px solid #facc15;
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  max-width: 26rem;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.confirm-modal h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #dc2626; /* red-600 */
+  margin-bottom: 0.5rem;
+}
+
+.confirm-modal p {
+  font-size: 0.95rem;
+  color: #4b5563; /* gray-600 */
+}
+
+.confirm-modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.confirm-button {
+  background-color: #ef4444; /* red-500 */
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.confirm-button:hover {
+  background-color: #dc2626;
+}
+
+.cancel-button {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+}
+
+.cancel-button:hover {
+  background-color: #e5e7eb;
+}
+
+@layer utilities {
+  .honeycomb-bg {
+    background-image:
+      radial-gradient(circle at 10% 10%, #fef3c7 2%, transparent 2.5%),
+      radial-gradient(circle at 30% 30%, #fde68a 2%, transparent 2.5%),
+      radial-gradient(circle at 50% 50%, #facc15 2%, transparent 2.5%),
+      radial-gradient(circle at 70% 70%, #fef3c7 2%, transparent 2.5%);
+    background-size: 100px 100px;
+    animation: moveHoneycomb 15s linear infinite;
+    opacity: 0.4;
+  }
+
+  @keyframes moveHoneycomb {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100px 100px;
+    }
+  }
 }
 

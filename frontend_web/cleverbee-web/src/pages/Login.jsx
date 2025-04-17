@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // Import Axios for API calls
+import axios from "axios";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const playBuzz = () => {
     const buzz = new Audio("/buzz.mp3");
@@ -33,29 +35,45 @@ export default function Login() {
     });
   }, []);
 
-  // Handle Sign In
   const handleSignIn = async () => {
-    if (email && password) {
-      try {
-        // Make a POST request to the backend
-        const response = await axios.post("http://localhost:8080/api/auth/login", {
-          email,
-          password,
-        });
-
-        // Handle success response
-        console.log(response.data.message);
-        alert("Login successful!");
-        navigate("/dashboard"); // Navigate to the dashboard or home page
-      } catch (error) {
-        // Handle error response
-        console.error(error.response?.data?.message || "Login failed");
-        alert(error.response?.data?.message || "Invalid credentials");
-      }
-    } else {
+    if (!email || !password) {
       alert("Please fill in all fields.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post("http://localhost:8080/api/auth/login", {
+        email,
+        password,
+      });
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2500);
+    } catch (error) {
+      console.error(error.response?.data?.message || "Login failed");
+      alert(error.response?.data?.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center text-center px-4">
+        <img
+          src="/bee.png"
+          alt="Bee"
+          className="w-24 mb-4 animate-bounce"
+          loading="lazy"
+        />
+        <h1 className="text-3xl font-bold text-yellow-800 mb-2">Login Successful!</h1>
+        <p className="text-gray-700">Buzzing into your dashboard... 🐝</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center relative overflow-hidden px-4">
@@ -65,6 +83,7 @@ export default function Login() {
           key={bee.id}
           src="/bee.png"
           alt="Bee"
+          loading="lazy"
           className="bee bee-wiggle bee-glow"
           onMouseEnter={playBuzz}
           style={{
@@ -74,7 +93,8 @@ export default function Login() {
             animationDuration: bee.animationDuration,
             animationDelay: bee.animationDelay,
             cursor: "pointer",
-            zIndex: 50, // This ensures the bees fly above the form
+            position: "absolute",
+            zIndex: 50,
           }}
         />
       ))}
@@ -117,10 +137,13 @@ export default function Login() {
         </div>
 
         <button
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded transition"
+          className={`w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded transition ${
+            loading ? "opacity-60 cursor-not-allowed" : ""
+          }`}
           onClick={handleSignIn}
+          disabled={loading}
         >
-          Sign In
+          {loading ? "Signing In..." : "Sign In"}
         </button>
 
         <p className="mt-4 text-sm text-gray-600">

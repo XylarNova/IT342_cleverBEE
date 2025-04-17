@@ -1,14 +1,23 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // Import Axios for API calls
+import axios from "axios";
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [fullname, setFullname] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formData, setFormData] = useState({
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const playBuzz = () => {
     const buzz = new Audio("/buzz.mp3");
@@ -36,43 +45,64 @@ export default function SignUp() {
   }, []);
 
   const handleSignUp = async () => {
-    if (username && fullname && email && password && confirmPassword) {
-      if (password === confirmPassword) {
-        try {
-          // Use relative path for the API call
-          const response = await axios.post("/api/auth/register", {
-            username,
-            fullname,
-            email,
-            password,
-          });
+    const { username, firstName, lastName, email, password, confirmPassword } = formData;
 
-          // Handle success response
-          console.log(response.data.message);
-          alert("User registered successfully!");
-          navigate("/welcome"); // Navigate after successful sign-up
-        } catch (error) {
-          // Handle error response
-          console.error(error.response?.data?.message || "Registration failed");
-          alert(error.response?.data?.message || "Registration failed");
-        }
-      } else {
-        alert("Passwords do not match.");
-      }
-    } else {
+    if (!username || !firstName || !lastName || !email || !password || !confirmPassword) {
       alert("Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post("/api/auth/register", {
+        username,
+        fullname: `${firstName} ${lastName}`,
+        email,
+        password,
+      });
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/welcome");
+      }, 3000);
+    } catch (error) {
+      console.error(error.response?.data?.message || "Registration failed");
+      alert(error.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center text-center px-4">
+        <img
+          src="/bee.png"
+          alt="Bee"
+          className="w-24 mb-4 animate-bounce"
+          loading="lazy"
+        />
+        <h1 className="text-3xl font-bold text-yellow-800 mb-2">Success!</h1>
+        <p className="text-gray-700">Welcome to the hive 🐝 Redirecting...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center relative overflow-hidden px-4">
-      {/* 🐝 Bees flying in the background */}
+      {/* Bees */}
       <div className="absolute top-0 left-0 right-0 bottom-0 z-0">
         {bees.map((bee) => (
           <img
             key={bee.id}
             src="/bee.png"
             alt="Bee"
+            loading="lazy"
             className="bee bee-wiggle bee-glow"
             onMouseEnter={playBuzz}
             style={{
@@ -82,69 +112,108 @@ export default function SignUp() {
               animationDuration: bee.animationDuration,
               animationDelay: bee.animationDelay,
               cursor: "pointer",
-              zIndex: 0, // Ensures bees are behind the form
+              position: "absolute",
+              zIndex: 0,
             }}
           />
         ))}
       </div>
 
-      {/* 🐝 Sign Up Form */}
+      {/* Sign Up Form */}
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-10 text-center mt-6 mb-6">
         <h1 className="text-3xl font-bold text-yellow-700 mb-4">Sign Up</h1>
         <p className="text-gray-500 mb-6">Join the hive today! 🐝</p>
 
-        <div className="text-left mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Username</label>
-          <input
-            type="text"
-            className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            placeholder="Enter username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+        <div className="text-left mb-4 space-y-4">
+  {/* Username */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">Username</label>
+    <input
+      type="text"
+      name="username"
+      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      placeholder="Enter your username"
+      value={formData.username}
+      onChange={handleChange}
+    />
+  </div>
 
-          <label className="block text-gray-700 font-medium mb-1">Full Name</label>
-          <input
-            type="text"
-            className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            placeholder="Enter full name"
-            value={fullname}
-            onChange={(e) => setFullname(e.target.value)}
-          />
+  {/* First Name & Last Name Side by Side */}
+  <div className="flex flex-col sm:flex-row sm:gap-4">
+    <div className="w-full sm:w-1/2">
+      <label className="block text-gray-700 font-medium mb-1">First Name</label>
+      <input
+        type="text"
+        name="firstName"
+        className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        placeholder="First Name"
+        value={formData.firstName}
+        onChange={handleChange}
+      />
+    </div>
 
-          <label className="block text-gray-700 font-medium mb-1">Email</label>
-          <input
-            type="email"
-            className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+    <div className="w-full sm:w-1/2 mt-4 sm:mt-0">
+      <label className="block text-gray-700 font-medium mb-1">Last Name</label>
+      <input
+        type="text"
+        name="lastName"
+        className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        placeholder="Last Name"
+        value={formData.lastName}
+        onChange={handleChange}
+      />
+    </div>
+  </div>
 
-          <label className="block text-gray-700 font-medium mb-1">Password</label>
-          <input
-            type="password"
-            className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+  {/* Email */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">Email</label>
+    <input
+      type="email"
+      name="email"
+      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      placeholder="Enter your email"
+      value={formData.email}
+      onChange={handleChange}
+    />
+  </div>
 
-          <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
-          <input
-            type="password"
-            className="w-full px-4 py-2 border rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-        </div>
+  {/* Password */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">Password</label>
+    <input
+      type="password"
+      name="password"
+      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      placeholder="Enter your password"
+      value={formData.password}
+      onChange={handleChange}
+    />
+  </div>
+
+  {/* Confirm Password */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
+    <input
+      type="password"
+      name="confirmPassword"
+      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      placeholder="Confirm your password"
+      value={formData.confirmPassword}
+      onChange={handleChange}
+    />
+  </div>
+</div>
+
 
         <button
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded transition"
           onClick={handleSignUp}
+          disabled={loading}
+          className={`w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded transition ${
+            loading ? "opacity-60 cursor-not-allowed" : ""
+          }`}
         >
-          Sign Up
+          {loading ? "Signing Up..." : "Sign Up"}
         </button>
 
         <p className="mt-4 text-sm text-gray-600">
