@@ -42,14 +42,10 @@ export default function Landing() {
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const handleSignIn = () => {
-    navigate("/login");
-  };
-
   return (
     <div className="font-sans text-gray-800 bg-white scroll-smooth">
       {/* Navbar */}
-      <header className="fixed top-0 w-full bg-white shadow z-50 px-6 py-4 flex items-center justify-between">
+      <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md shadow-md z-50 px-6 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-yellow-500">CleverBee 🐝</h1>
         <div className="hidden md:flex items-center gap-6">
           <nav className="flex gap-6 font-medium text-gray-700">
@@ -58,7 +54,7 @@ export default function Landing() {
             <a href="#contact" className="hover:text-yellow-500 transition">Contact</a>
           </nav>
           <button
-            onClick={handleSignIn}
+            onClick={() => navigate("/login")}
             className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-md font-semibold shadow transition"
           >
             Sign In
@@ -67,11 +63,11 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-24 px-6 bg-yellow-100 text-center min-h-[70vh] flex flex-col items-center justify-center">
+      <section className="pt-36 pb-24 px-6 bg-gradient-to-b from-yellow-100 to-yellow-50 text-center min-h-[80vh] flex flex-col items-center justify-center">
         <img
           src="/Cleverbee_bee.png"
           alt="Study Bee"
-          className="w-40 h-40 mb-6 floating-bee hero-glow"
+          className="w-44 h-44 mb-6 animate-bounce"
         />
         <h2 className="text-5xl font-extrabold text-gray-900 mb-4 drop-shadow">
           Plan Smarter. Study Better.
@@ -79,7 +75,10 @@ export default function Landing() {
         <p className="text-xl text-gray-700 max-w-2xl mb-8 leading-relaxed">
           CleverBee helps you stay organized, productive, and focused—designed especially for students.
         </p>
-        <button className="bg-yellow-500 hover:bg-yellow-400 text-white text-lg px-8 py-3 rounded-full font-bold shadow-lg transition-transform hover:scale-105">
+        <button
+          onClick={() => navigate("/signup")}
+          className="bg-yellow-500 hover:bg-yellow-400 text-white text-lg px-8 py-3 rounded-full font-bold shadow-lg transition-transform hover:scale-105"
+        >
           Get Started
         </button>
       </section>
@@ -87,27 +86,23 @@ export default function Landing() {
       {/* Features Section */}
       <section id="features" className="py-24 px-6 bg-white">
         <div className="text-center mb-16">
-          <h3 className="relative inline-block text-4xl font-bold text-gray-800 after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-2 after:bg-yellow-300 after:rounded-full">
+          <h3 className="text-4xl font-bold text-gray-800 mb-4">
             Why Choose CleverBee?
           </h3>
-          <p className="text-gray-600 mt-4 max-w-2xl mx-auto text-lg">
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Discover features that help you focus, organize, and study smarter.
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto grid gap-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`flex flex-col-reverse md:flex-row ${
-                index % 2 !== 0 ? "md:flex-row-reverse" : ""
-              } items-center gap-8 transition duration-500`}
+              className="bg-yellow-50 hover:bg-yellow-100 transition p-6 rounded-2xl shadow-md flex flex-col gap-4 text-left"
             >
-              <div className="flex-shrink-0 text-5xl text-yellow-400">🐝</div>
-              <div className="bg-yellow-50 hover:bg-yellow-100 transition rounded-2xl shadow-soft p-8 w-full">
-                <h4 className="text-2xl font-bold text-gray-800 mb-2">{feature.title}</h4>
-                <p className="text-gray-600 text-lg">{feature.description}</p>
-              </div>
+              <div className="text-3xl">🐝</div>
+              <h4 className="text-xl font-bold text-gray-800">{feature.title}</h4>
+              <p className="text-gray-600 text-md">{feature.description}</p>
             </div>
           ))}
         </div>
@@ -115,7 +110,7 @@ export default function Landing() {
 
       {/* About Section */}
       <section id="about" className="bg-yellow-100 py-24 px-6 text-center">
-        <h3 className="text-3xl font-bold mb-6 text-gray-800">About CleverBee</h3>
+        <h3 className="text-3xl font-bold text-gray-800 mb-6">About CleverBee</h3>
         <p className="max-w-4xl mx-auto text-gray-700 text-lg leading-relaxed">
           CleverBee is your all-in-one digital planner that empowers students with powerful tools
           like task management, personalized study methods, and smart scheduling—helping you reach
