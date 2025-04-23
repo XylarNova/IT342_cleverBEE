@@ -4,6 +4,10 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 
+// Theme Context
+import { ThemeProvider } from "./pages/ThemeContext";
+
+// Pages
 import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx";
@@ -24,26 +28,28 @@ import Logout from './pages/Logout';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/dashboard" element={<Dashboard />} /> 
-        <Route path="/tasks" element={<Tasks />} />
-        <Route path="/schedule" element={<Schedule />} />
-        <Route path="/tools" element={<StudyTools />} />
-        <Route path="/tools/pomodoro" element={<Pomodoro />} />
-        <Route path="/tools/flashcards" element={<Flashcards />} />
-        <Route path="/study" element={<FlashcardStudy />} />
-        <Route path="/tools/quiz" element={<Quiz />} />
-        <Route path="/quiz-start" element={<QuizStart />} />
-        <Route path="/files" element={<Files />} />
-        <Route path="/map" element={<Map />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/logout" element={<Logout />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/dashboard" element={<Dashboard />} /> 
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/tools" element={<StudyTools />} />
+          <Route path="/tools/pomodoro" element={<Pomodoro />} />
+          <Route path="/tools/flashcards" element={<Flashcards />} />
+          <Route path="/study" element={<FlashcardStudy />} />
+          <Route path="/tools/quiz" element={<Quiz />} />
+          <Route path="/quiz-start" element={<QuizStart />} />
+          <Route path="/files" element={<Files />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/logout" element={<Logout />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   </React.StrictMode>
 );

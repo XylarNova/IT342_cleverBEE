@@ -11,6 +11,8 @@ const cafeIcon = new L.Icon({ iconUrl: '/icons/cafe.png', iconSize: [30, 30], ic
 const loungeIcon = new L.Icon({ iconUrl: '/icons/lounge.png', iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30] });
 const userIcon = new L.Icon({ iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
 
+import axios from 'axios';
+
 const studyLocations = [
   { name: 'Antipolo City Public Library', lat: 14.584, lng: 121.175, type: 'Public Library', openHours: '08:00 - 18:00', seatsAvailable: 12 },
   { name: 'Ynares Study Lounge', lat: 14.589, lng: 121.177, type: 'Study Lounge', openHours: '10:00 - 21:00', seatsAvailable: 6 },
@@ -46,6 +48,7 @@ const getIconByType = (type) => {
 const Maps = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [filter, setFilter] = useState('All');
+  const [studyLocations, setStudyLocations] = useState([]);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -53,6 +56,28 @@ const Maps = () => {
       () => setUserLocation([14.584, 121.175])
     );
   }, []);
+
+  useEffect(() => {
+    const fetchStudyPlaces = async () => {
+      try {
+        if (!userLocation) return;
+        const radius = 10; // km
+        const response = await axios.get('/api/study-places', {
+          params: {
+            lat: userLocation[0],
+            lng: userLocation[1],
+            radius: radius,
+          },
+        });
+        if (response.data.status === 'success') {
+          setStudyLocations(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch study places:', error);
+      }
+    };
+    fetchStudyPlaces();
+  }, [userLocation]);
 
   const filteredLocations = filter === 'All' ? studyLocations : studyLocations.filter(loc => loc.type === filter);
 

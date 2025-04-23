@@ -10,14 +10,20 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
+    private String label;
     private String description;
-    private LocalDateTime dueDate;
     private String priority;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+
+    @Column(name = "completed", nullable = false)
+    private boolean completed = false;  // 👈 added this line
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false) // Creates a foreign key
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    // --- Getters and Setters ---
 
     public Long getId() {
         return id;
@@ -27,12 +33,12 @@ public class Task {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getLabel() {
+        return label;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public String getDescription() {
@@ -43,20 +49,36 @@ public class Task {
         this.description = description;
     }
 
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
-    }
-
     public String getPriority() {
         return priority;
     }
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDateTime getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDateTime endDate) {
+        this.endDate = endDate;
+    }
+
+    public boolean isCompleted() {  // 👈 added
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {  // 👈 added
+        this.completed = completed;
     }
 
     public User getUser() {
