@@ -1,230 +1,224 @@
-import React, { useState } from 'react';
-import { FiEdit, FiTrash2 } from 'react-icons/fi';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { FiTrash2, FiEdit } from 'react-icons/fi';
+import Sidebar from './Sidebar';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import Sidebar from './Sidebar';
 
 const Tasks = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-
   const [tasks, setTasks] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [formError, setFormError] = useState('');
-
   const [newTask, setNewTask] = useState({
-    title: '',
+    label: '',
     description: '',
-    priority: '',
-    progress: 0,
-    due_date: ''
+    priority: 'moderate',
+    startDate: null,
+    endDate: null
   });
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [checkedTasks, setCheckedTasks] = useState([]);
+  const [showForm, setShowForm] = useState(false);
 
-  const resetModal = () => {
-    setNewTask({ title: '', description: '', priority: '', progress: 0, due_date: '' });
-    setEditingTaskId(null);
-    setEditMode(false);
-    setShowModal(false);
-    setFormError('');
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    const token = localStorage.getItem("token");
+    const response = await axios.get('/api/tasks', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setTasks(response.data.data);
   };
 
-  const handleAddTask = () => {
-    const { title, due_date, priority } = newTask;
-    if (!title || !due_date || !priority) {
-      setFormError('⚠️ Please fill in all required fields!');
-      return;
-    }
+  const addOrUpdateTask = async () => {
+    const token = localStorage.getItem("token");
+    const taskData = {
+      ...newTask,
+      startDate: newTask.startDate?.toISOString(),
+      endDate: newTask.endDate?.toISOString(),
+    };
 
-    setFormError('');
-    if (editMode) {
-      setTasks(prev =>
-        prev.map(task => task.id === editingTaskId ? { ...task, ...newTask } : task)
-      );
+    if (editingTaskId) {
+      await axios.put(`/api/tasks/${editingTaskId}`, taskData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
     } else {
-      const newId = tasks.length ? tasks[tasks.length - 1].id + 1 : 1;
-      setTasks([...tasks, { ...newTask, id: newId }]);
+      await axios.post('/api/tasks', taskData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
     }
-    resetModal();
+
+    setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
+    setEditingTaskId(null);
+    setShowForm(false);
+    fetchTasks();
   };
 
-  const confirmDeleteTask = (id) => setConfirmDeleteId(id);
-  const cancelDelete = () => setConfirmDeleteId(null);
-  const handleDeleteTask = () => {
-    setTasks(prev => prev.filter(task => task.id !== confirmDeleteId));
-    setConfirmDeleteId(null);
+  const cancelForm = () => {
+    setShowForm(false);
+    setEditingTaskId(null);
+    setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
   };
 
-  const handleEditTask = (task) => {
+  const deleteTask = async (id) => {
+    const token = localStorage.getItem("token");
+    await axios.delete(`/api/tasks/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchTasks();
+  };
+
+  const priorities = [
+    { key: 'high', title: '🐝 Super Important', color: 'bg-red-200' },
+    { key: 'moderate', title: '🧸 Kind of Important', color: 'bg-yellow-200' },
+    { key: 'low', title: '💤 Not Important', color: 'bg-blue-100' },
+  ];
+
+  const toggleComplete = (id) => {
+    setCheckedTasks(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
+  };
+
+  const handleEdit = (task) => {
     setNewTask({
-      title: task.title,
+      label: task.label,
       description: task.description,
       priority: task.priority,
-      progress: task.progress,
-      due_date: task.due_date
+      startDate: task.startDate ? new Date(task.startDate) : null,
+      endDate: task.endDate ? new Date(task.endDate) : null,
     });
     setEditingTaskId(task.id);
-    setEditMode(true);
-    setShowModal(true);
+    setShowForm(true);
   };
 
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
+  const progressPercent = tasks.length ? Math.round((checkedTasks.length / tasks.length) * 100) : 0;
 
-      <main className="flex-1 bg-yellow-50 p-10 space-y-6 text-gray-800">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <h1 className="text-4xl font-bold text-yellow-600">Task Management</h1>
-          <button
-            onClick={() => {
-              setEditMode(false);
-              setNewTask({ title: '', description: '', priority: '', progress: 0, due_date: '' });
-              setShowModal(true);
-              setFormError('');
-            }}
-            className="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded font-semibold shadow w-fit"
-          >
-            ➕ Add Task
-          </button>
+  return (
+    <div className="flex min-h-screen bg-yellow-50">
+      <Sidebar />
+      <main className="flex-1 p-6">
+        <h1 className="text-3xl font-bold text-yellow-600 mb-4">Task Manager</h1>
+
+        <div className="mb-6 bg-white p-4 rounded shadow flex items-center gap-4">
+          <img src="/Cleverbee_bee.png" alt="Bee" className="w-16 h-16" />
+          <div className="flex-1">
+            <p className="text-lg font-semibold text-gray-700">You're doing great!</p>
+            <div className="w-full bg-gray-200 h-3 rounded">
+              <div
+                className="h-3 bg-yellow-400 rounded"
+                style={{ width: `${progressPercent}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">{progressPercent}% completed</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md border border-yellow-300 p-6">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">📋 My Tasks</h2>
-          {tasks.length === 0 ? (
-            <p className="text-gray-500 italic">No tasks yet. Add one to get started!</p>
-          ) : (
-            <div className="space-y-4">
-              {tasks.map(task => (
-                <div key={task.id} className="bg-yellow-50 border border-black/10 rounded-lg p-4 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <p className="font-bold text-lg">{task.title}</p>
-                      <p className="text-sm text-gray-600 italic mb-1">{task.description}</p>
-                      <p className="text-sm text-gray-500">Due: {task.due_date}</p>
-                      <p className="text-sm capitalize">
-                        Priority: <span className={`font-medium ${
-                          task.priority === 'high' ? 'text-red-500' :
-                          task.priority === 'medium' ? 'text-blue-500' : 'text-gray-700'
-                        }`}>{task.priority}</span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 text-xl text-gray-700">
-                      <FiEdit className="cursor-pointer hover:text-blue-500" onClick={() => handleEditTask(task)} />
-                      <FiTrash2 className="cursor-pointer hover:text-red-500" onClick={() => confirmDeleteTask(task.id)} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 mt-3">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full ${
-                          task.priority === 'high' ? 'bg-red-400' :
-                          task.priority === 'medium' ? 'bg-blue-400' : 'bg-sky-300'
-                        }`}
-                        style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium w-12 text-right">{task.progress}%</span>
-                  </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="mb-6 bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-500"
+        >
+          ➕ Add Task
+        </button>
+
+        {showForm && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+            <div className="bg-white border-4 border-yellow-400 p-6 rounded-xl shadow-xl w-full max-w-xl">
+              <h2 className="text-xl font-bold text-yellow-500 mb-4 flex items-center gap-2">📝 Add New Task</h2>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Title"
+                  className="w-full p-3 border border-gray-300 rounded-md"
+                  value={newTask.label}
+                  onChange={(e) => setNewTask({ ...newTask, label: e.target.value })}
+                />
+                <input
+                  type="text"
+                  placeholder="Description"
+                  className="w-full p-3 border border-gray-300 rounded-md"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                />
+                <select
+                  className="w-full p-3 border border-gray-300 rounded-md"
+                  value={newTask.priority}
+                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                >
+                  <option value="high">🐝 Super Important</option>
+                  <option value="moderate">🧸 Kind of Important</option>
+                  <option value="low">💤 Not Important</option>
+                </select>
+                <div className="flex gap-4">
+                  <DatePicker
+                    placeholderText="Start Date"
+                    selected={newTask.startDate}
+                    onChange={(date) => setNewTask({ ...newTask, startDate: date })}
+                    className="w-full p-3 border border-gray-300 rounded-md"
+                  />
+                  <DatePicker
+                    placeholderText="End Date"
+                    selected={newTask.endDate}
+                    onChange={(date) => setNewTask({ ...newTask, endDate: date })}
+                    className="w-full p-3 border border-gray-300 rounded-md"
+                  />
                 </div>
-              ))}
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={addOrUpdateTask}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded-md font-semibold"
+                >
+                  {editingTaskId ? 'Update Task' : 'Save Task'}
+                </button>
+                <button
+                  onClick={cancelForm}
+                  className="bg-gray-200 hover:bg-gray-300 text-black px-6 py-2 rounded-md font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          )}
+          </div>
+        )}
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {priorities.map(({ key, title, color }) => (
+            <div key={key} className={`p-4 rounded-lg shadow ${color}`}>
+              <h3 className="text-lg font-bold text-yellow-600 mb-4">{title}</h3>
+              {tasks
+                .filter((task) => task.priority === key)
+                .map((task) => (
+                  <div
+                    key={task.id}
+                    className={`relative p-4 mb-3 rounded shadow bg-white ${checkedTasks.includes(task.id) ? 'opacity-50' : ''}`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <input
+                        type="checkbox"
+                        checked={checkedTasks.includes(task.id)}
+                        onChange={() => toggleComplete(task.id)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-bold text-yellow-700">{task.label}</h4>
+                        <p className="text-sm text-gray-600">{task.description}</p>
+                      </div>
+                      <div className="flex gap-2 text-xl">
+                        <FiEdit
+                          className="cursor-pointer text-blue-500 hover:text-blue-700"
+                          onClick={() => handleEdit(task)}
+                        />
+                        <FiTrash2
+                          className="cursor-pointer text-red-500 hover:text-red-600"
+                          onClick={() => deleteTask(task.id)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
         </div>
       </main>
-
-      {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2 className="text-xl font-bold mb-2 text-yellow-500 text-center">
-              {editMode ? '✏️ Edit Task' : '🐝 Add New Task'}
-            </h2>
-
-            {formError && (
-              <p className="text-sm text-red-600 font-medium mb-4 text-center">{formError}</p>
-            )}
-
-            {/* Title */}
-            <label className="block font-medium text-gray-700 mb-1">Task Title</label>
-            <input
-              value={newTask.title}
-              onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-              placeholder="e.g. Finish project report"
-              className="w-full px-4 py-2 border border-black rounded shadow-sm mb-4"
-            />
-
-            {/* Description */}
-            <label className="block font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              value={newTask.description}
-              onChange={e => setNewTask({ ...newTask, description: e.target.value })}
-              placeholder="What is this task about?"
-              className="w-full px-4 py-2 border border-black rounded shadow-sm mb-4"
-            />
-
-            {/* Due Date */}
-            <label className="block font-medium text-gray-700 mb-1">Deadline</label>
-            <DatePicker
-              selected={newTask.due_date ? new Date(newTask.due_date) : null}
-              onChange={(date) =>
-                setNewTask({ ...newTask, due_date: date.toISOString().split("T")[0] })
-              }
-              dateFormat="yyyy-MM-dd"
-              placeholderText="Select deadline"
-              className="w-full px-4 py-2 border border-black rounded shadow-sm mb-4"
-            />
-
-            {/* Priority */}
-            <label className="block font-medium text-gray-700 mb-1">Priority</label>
-            <select
-              value={newTask.priority}
-              onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
-              className="w-full px-4 py-2 border border-black rounded shadow-sm mb-4"
-            >
-              <option value="" disabled>Select priority</option>
-              <option value="normal">Normal</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-
-            {/* Progress */}
-            <label className="block font-medium text-gray-700 mb-1">Progress (%)</label>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={newTask.progress}
-              onChange={e => setNewTask({ ...newTask, progress: parseInt(e.target.value) || 0 })}
-              placeholder="e.g. 75"
-              className="w-full px-4 py-2 border border-black rounded shadow-sm mb-6"
-            />
-
-            <div className="flex justify-end gap-3">
-              <button onClick={resetModal} className="bg-gray-200 hover:bg-gray-300 text-black px-4 py-2 rounded">Cancel</button>
-              <button onClick={handleAddTask} className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded font-bold">
-                {editMode ? 'Update' : 'Add'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation */}
-      {confirmDeleteId !== null && (
-        <div className="modal-overlay">
-          <div className="modal-box max-w-sm">
-            <h2 className="text-lg font-bold mb-4 text-red-600">Are you sure?</h2>
-            <p className="mb-6 text-gray-700">Do you really want to delete this task? This action cannot be undone.</p>
-            <div className="flex justify-end gap-3">
-              <button onClick={cancelDelete} className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">Cancel</button>
-              <button onClick={handleDeleteTask} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold">Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

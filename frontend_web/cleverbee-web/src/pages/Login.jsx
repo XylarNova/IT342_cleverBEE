@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -15,7 +17,6 @@ export default function Login() {
     buzz.play();
   };
 
-  // Random Bee Movements
   const bees = useMemo(() => {
     return Array.from({ length: 12 }).map((_, i) => {
       const randomTop = Math.floor(Math.random() * 85);
@@ -40,25 +41,43 @@ export default function Login() {
       alert("Please fill in all fields.");
       return;
     }
-
+  
     setLoading(true);
     try {
       const response = await axios.post("http://localhost:8080/api/auth/login", {
         email,
         password,
+      }, {
+        withCredentials: true,
       });
-
-      setShowSuccess(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2500);
+  
+      const { token } = response.data;
+      if (token) {
+        // Store token in localStorage
+        localStorage.setItem("token", token);
+  
+        // Set default header for all future axios requests
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  
+        setShowSuccess(true);
+  
+        // ⏳ Simulate transition to dashboard
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 2500);
+      } else {
+        alert("No token received. Something went wrong.");
+      }
     } catch (error) {
-      console.error(error.response?.data?.message || "Login failed");
-      alert(error.response?.data?.message || "Invalid credentials");
+      const msg = error.response?.data?.message || "Login failed. Please try again.";
+      console.error("❌", msg);
+      alert(msg);
     } finally {
       setLoading(false);
     }
   };
+  
+  
 
   if (showSuccess) {
     return (
@@ -77,7 +96,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center relative overflow-hidden px-4">
-      {/* 🐝 Bees flying in front of the form */}
       {bees.map((bee) => (
         <img
           key={bee.id}
@@ -99,7 +117,6 @@ export default function Login() {
         />
       ))}
 
-      {/* 🔐 Login Form */}
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-10 text-center">
         <h1 className="text-2xl font-bold text-yellow-700 mb-1">
           Welcome to CleverBee
@@ -117,15 +134,24 @@ export default function Login() {
           />
 
           <label className="block text-gray-700 font-medium mb-1">Password</label>
-          <input
-            type="password"
-            className="w-full px-4 py-2 border rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              className="w-full px-4 py-2 border rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-yellow-400 pr-10"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-2.5 text-gray-600"
+              onClick={() => setShowPassword((prev) => !prev)}
+              tabIndex={-1}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
 
-          {/* Forgot Password Link */}
           <div className="text-sm text-gray-600 mb-4">
             <span
               onClick={() => alert("Forgot password functionality here")}

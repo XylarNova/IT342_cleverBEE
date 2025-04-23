@@ -30,14 +30,30 @@ public class TaskService {
 
     public Task updateTask(Long taskId, Task taskDetails) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("Task not found"));
-        task.setTitle(taskDetails.getTitle());
+        task.setLabel(taskDetails.getLabel());
         task.setDescription(taskDetails.getDescription());
-        task.setDueDate(taskDetails.getDueDate());
         task.setPriority(taskDetails.getPriority());
+        task.setStartDate(taskDetails.getStartDate());
+        task.setEndDate(taskDetails.getEndDate());
+        task.setCompleted(taskDetails.isCompleted());
         return taskRepository.save(task);
     }
 
     public void deleteTask(Long taskId) {
         taskRepository.deleteById(taskId);
     }
+
+    public Task updateCompletionStatus(Long taskId, boolean completed) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("Task not found"));
+        task.setCompleted(completed);
+        return taskRepository.save(task);
+    }
+
+    public Task updateTaskCompletion(Long taskId, boolean completed) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+        task.setCompleted(completed);  // Assuming you have a `completed` field in Task
+        return taskRepository.save(task);
+    }
+    
 }
