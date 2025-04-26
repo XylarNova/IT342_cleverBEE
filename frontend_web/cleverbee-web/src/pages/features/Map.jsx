@@ -82,65 +82,95 @@ const Maps = () => {
   const filteredLocations = filter === 'All' ? studyLocations : studyLocations.filter(loc => loc.type === filter);
 
   return (
-    <div className="flex min-h-screen overflow-visible relative z-0">
-
+    <div className="flex min-h-screen relative z-0">
       <Sidebar />
-
-      <div className="flex-1 p-6 bg-gray-100 overflow-hidden">
-        <div className="flex justify-between items-center mb-4">
-        <h1 className="text-4xl font-bold text-yellow-600">Study Map</h1>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm shadow"
-          >
-            <option value="All">All Types</option>
-            <option value="Public Library">Public Library</option>
-            <option value="Study Lounge">Study Lounge</option>
-            <option value="Cafe">Cafe</option>
-          </select>
+  
+      <div className="flex-1 flex p-6 bg-gray-100 overflow-hidden">
+        <div className="w-3/5 pr-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-4xl font-bold text-yellow-600">Study Map</h1>
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="px-3 py-2 border rounded-md text-sm shadow"
+            >
+              <option value="All">All Types</option>
+              <option value="Public Library">Library</option>
+              <option value="Study Lounge">Study Lounge</option>
+              <option value="Cafe">Cafe</option>
+            </select>
+          </div>
+  
+          {userLocation ? (
+            <MapContainer center={userLocation} zoom={15} className="h-[75vh] w-full rounded-lg shadow-lg z-10">
+              <TileLayer
+                attribution='&copy; OpenStreetMap'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={userLocation} icon={userIcon}>
+                <Popup>You are here</Popup>
+              </Marker>
+  
+              {filteredLocations.map((place, index) => {
+                const { walkTime, driveTime } = calculateDistanceTime(userLocation[0], userLocation[1], place.lat, place.lng);
+                return (
+                  <Marker key={index} position={[place.lat, place.lng]} icon={getIconByType(place.type)}>
+                    <Popup>
+                      <strong>{place.name}</strong><br />
+                      Type: {place.type}<br />
+                      Open: {place.openHours}<br />
+                      Status: <span className={isOpenNow(place.openHours) ? 'text-green-600' : 'text-red-600'}>{isOpenNow(place.openHours) ? 'Open' : 'Closed'}</span><br />
+                      Seats: {place.seatsAvailable}<br />
+                      🚶 {walkTime} min | 🚗 {driveTime} min<br />
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 underline"
+                      >
+                        Navigate
+                      </a>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+          ) : (
+            <p className="text-gray-500 text-center">Loading map...</p>
+          )}
         </div>
-
-        {userLocation ? (
-          <MapContainer center={userLocation} zoom={15} className="h-[75vh] w-full rounded-lg shadow-lg z-10">
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={userLocation} icon={userIcon}>
-              <Popup>You are here</Popup>
-            </Marker>
-
-            {filteredLocations.map((place, index) => {
+  
+        {/* Right panel: place list */}
+        <div className="w-2/5 bg-white rounded-lg shadow-lg p-4 overflow-y-auto h-[75vh]">
+          <h2 className="text-xl font-semibold mb-3">Nearby {filter === 'All' ? 'Places' : filter}s</h2>
+          {filteredLocations.length === 0 ? (
+            <p className="text-sm text-gray-500">No nearby results found.</p>
+          ) : (
+            filteredLocations.map((place, index) => {
               const { walkTime, driveTime } = calculateDistanceTime(userLocation[0], userLocation[1], place.lat, place.lng);
               return (
-                <Marker key={index} position={[place.lat, place.lng]} icon={getIconByType(place.type)}>
-                  <Popup>
-                    <strong>{place.name}</strong><br />
-                    Type: {place.type}<br />
-                    Open: {place.openHours}<br />
-                    Status: <span className={isOpenNow(place.openHours) ? 'text-green-600' : 'text-red-600'}>{isOpenNow(place.openHours) ? 'Open' : 'Closed'}</span><br />
-                    Seats: {place.seatsAvailable}<br />
-                    🚶 {walkTime} min | 🚗 {driveTime} min<br />
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 underline"
-                    >
-                      Navigate
-                    </a>
-                  </Popup>
-                </Marker>
+                <div key={index} className="border-b py-2">
+                  <h3 className="text-lg font-bold text-yellow-600">{place.name}</h3>
+                  <p className="text-sm text-gray-600">Type: {place.type}</p>
+                  <p className="text-sm">🕒 {place.openHours} — <span className={isOpenNow(place.openHours) ? "text-green-600" : "text-red-500"}>{isOpenNow(place.openHours) ? 'Open' : 'Closed'}</span></p>
+                  <p className="text-sm">🚶 {walkTime} min | 🚗 {driveTime} min</p>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline text-sm"
+                  >
+                    Get Directions
+                  </a>
+                </div>
               );
-            })}
-          </MapContainer>
-        ) : (
-          <p className="text-gray-500 text-center">Loading map...</p>
-        )}
+            })
+          )}
+        </div>
       </div>
     </div>
   );
+  
 };
 
 export default Maps;

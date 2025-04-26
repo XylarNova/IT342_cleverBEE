@@ -18,6 +18,12 @@ public class UserService {
 
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Default avatar if not set
+        if (user.getProfilePic() == null || user.getProfilePic().isEmpty()) {
+            user.setProfilePic("/avatar1.png");
+        }
+
         return userRepository.save(user);
     }
 
@@ -27,5 +33,18 @@ public class UserService {
             return user;
         }
         return Optional.empty();
+    }
+
+    // ✅ New: Update existing user info
+    public void updateUser(User updatedUser, String email) {
+        User existingUser = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setUsername(updatedUser.getUsername());
+        existingUser.setProfilePic(updatedUser.getProfilePic());
+
+        userRepository.save(existingUser);
     }
 }

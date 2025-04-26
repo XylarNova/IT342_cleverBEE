@@ -15,7 +15,6 @@ export default function SignUp() {
   });
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -23,13 +22,8 @@ export default function SignUp() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const toggleShowConfirmPassword = () => {
-    setShowConfirmPassword((prev) => !prev);
-  };
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+  const toggleShowConfirmPassword = () => setShowConfirmPassword((prev) => !prev);
 
   const playBuzz = () => {
     const buzz = new Audio("/buzz.mp3");
@@ -108,7 +102,16 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center relative overflow-hidden px-4">
-      {/* Bees */}
+      {/* 🏠 Home Button (Top Left) */}
+      <img
+        src="/home.png"
+        alt="Home"
+        title="Go to Home"
+        className="absolute top-4 left-4 w-24 h-24 cursor-pointer z-50 hover:scale-105 transition-transform"
+        onClick={() => navigate("/")}
+      />
+
+      {/* 🐝 Bees Animation */}
       <div className="absolute top-0 left-0 right-0 bottom-0 z-0">
         {bees.map((bee) => (
           <img
@@ -138,7 +141,6 @@ export default function SignUp() {
         <p className="text-gray-500 mb-6">Join the hive today! 🐝</p>
 
         <div className="text-left mb-4 space-y-4">
-          {/* Username */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Username</label>
             <input
@@ -151,7 +153,6 @@ export default function SignUp() {
             />
           </div>
 
-          {/* First Name & Last Name Side by Side */}
           <div className="flex flex-col sm:flex-row sm:gap-4">
             <div className="w-full sm:w-1/2">
               <label className="block text-gray-700 font-medium mb-1">First Name</label>
@@ -178,7 +179,6 @@ export default function SignUp() {
             </div>
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Email</label>
             <input
@@ -191,7 +191,6 @@ export default function SignUp() {
             />
           </div>
 
-          {/* Password */}
           <div className="relative">
             <label className="block text-gray-700 font-medium mb-1">Password</label>
             <input
@@ -212,7 +211,6 @@ export default function SignUp() {
             </button>
           </div>
 
-          {/* Confirm Password */}
           <div className="relative">
             <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
             <input
@@ -250,7 +248,7 @@ export default function SignUp() {
             className="text-yellow-700 font-semibold cursor-pointer"
             onClick={() => navigate("/login")}
           >
-            Sign in
+            Log in
           </span>
         </p>
       </div>

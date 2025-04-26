@@ -51,14 +51,22 @@ export default function Landing() {
           <nav className="flex gap-6 font-medium text-gray-700">
             <a href="#features" className="hover:text-yellow-500 transition">Features</a>
             <a href="#about" className="hover:text-yellow-500 transition">About</a>
-            <a href="#contact" className="hover:text-yellow-500 transition">Contact</a>
+            <a href="#contact" className="hover:text-yellow-500 transition">Contact U</a>
           </nav>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-md font-semibold shadow transition"
-          >
-            Sign In
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/login")}
+              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-400 px-4 py-2 rounded-md font-semibold transition"
+            >
+              Log In
+            </button>
+            <button
+              onClick={() => navigate("/signup")}
+              className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-md font-semibold shadow transition"
+            >
+              Sign Up
+            </button>
+          </div>
         </div>
       </header>
 

@@ -17,7 +17,7 @@ public class StudyPlace {
     private double lng;
     private String type;
     private String openHours;
-    private int seatsAvailable;
+
 
     public StudyPlace() {}
 
@@ -27,7 +27,6 @@ public class StudyPlace {
         this.lng = lng;
         this.type = type;
         this.openHours = openHours;
-        this.seatsAvailable = seatsAvailable;
     }
 
     // Getters and setters
@@ -56,9 +55,7 @@ public class StudyPlace {
         return openHours;
     }
 
-    public int getSeatsAvailable() {
-        return seatsAvailable;
-    }
+   
 
     public void setId(Long id) {
         this.id = id;
@@ -84,7 +81,5 @@ public class StudyPlace {
         this.openHours = openHours;
     }
 
-    public void setSeatsAvailable(int seatsAvailable) {
-        this.seatsAvailable = seatsAvailable;
-    }
+   
 }
