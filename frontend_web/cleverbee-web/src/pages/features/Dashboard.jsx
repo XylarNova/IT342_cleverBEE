@@ -57,11 +57,12 @@ const Dashboard = () => {
           {/* LEFT COLUMN */}
           <div className="space-y-8">
             <section className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-200 flex items-center gap-4">
-              <img
-                src="/boy blond.png"
-                alt="User Avatar"
-                className="w-20 h-20 rounded-full border-4 border-yellow-300 shadow-lg hover:scale-105 transition"
-              />
+            <img
+              src={user.profilePic || '/avatar1.png'}
+              alt="User Avatar"
+              className="w-20 h-20 rounded-full border-4 border-yellow-300 shadow-lg hover:scale-105 transition object-cover"
+            />
+
               <div>
                 <h2 className="text-xl font-bold text-yellow-600">
                   Hi, {user.username || user.name} 👋
@@ -69,9 +70,7 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 mt-1">
                   Let’s achieve great things today!
                 </p>
-                <button className="mt-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:to-yellow-600 text-white px-5 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition">
-                  Start Your Day
-                </button>
+            
               </div>
             </section>
 

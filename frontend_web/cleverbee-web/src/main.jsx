@@ -4,8 +4,6 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 
-// Theme Context
-import { ThemeProvider } from "./pages/ThemeContext";
 
 // Pages
 import Landing from "./pages/Landing.jsx";
@@ -28,7 +26,7 @@ import Logout from './pages/Logout';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ThemeProvider>
+    
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -50,6 +48,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/logout" element={<Logout />} />
         </Routes>
       </BrowserRouter>
-    </ThemeProvider>
+    
   </React.StrictMode>
 );

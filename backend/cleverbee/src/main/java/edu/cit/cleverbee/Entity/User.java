@@ -25,6 +25,9 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "profile_pic")
+    private String profilePic = "/avatar1.png";
+
     // Getters and Setters
 
     public Long getId() {
@@ -73,6 +76,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+    
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
     }
 
 }

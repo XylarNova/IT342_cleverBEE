@@ -2,6 +2,7 @@ package edu.cit.cleverbee.Controller;
 
 import edu.cit.cleverbee.Entity.User;
 import edu.cit.cleverbee.Repository.UserRepository;
+import edu.cit.cleverbee.Service.UserService;
 
 import java.util.Map;
 
@@ -18,6 +19,10 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserService userService;
+
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         String userEmail = authentication.getName(); // Extract email from JWT
@@ -30,7 +35,16 @@ public class UserController {
             "email", user.getEmail(),
             "username", user.getUsername(),
             "firstName", user.getFirstName(),
-            "lastName", user.getLastName()
+            "lastName", user.getLastName(),
+            "profilePic", user.getProfilePic() 
         ));
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUser(@RequestBody User updatedUser, Authentication authentication) {
+    String email = authentication.getName(); // From JWT
+    userService.updateUser(updatedUser, email);
+    return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+}
+
 }

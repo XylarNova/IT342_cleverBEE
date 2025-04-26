@@ -41,30 +41,21 @@ export default function Login() {
       alert("Please fill in all fields.");
       return;
     }
-  
+
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8080/api/auth/login", {
-        email,
-        password,
-      }, {
-        withCredentials: true,
-      });
-  
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
+        { email, password },
+        { withCredentials: true }
+      );
+
       const { token } = response.data;
       if (token) {
-        // Store token in localStorage
         localStorage.setItem("token", token);
-  
-        // Set default header for all future axios requests
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  
         setShowSuccess(true);
-  
-        // ⏳ Simulate transition to dashboard
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 2500);
+        setTimeout(() => navigate("/dashboard"), 2500);
       } else {
         alert("No token received. Something went wrong.");
       }
@@ -76,8 +67,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-  
-  
 
   if (showSuccess) {
     return (
@@ -96,6 +85,16 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center relative overflow-hidden px-4">
+      {/* 🏠 Home Button (Top Left) */}
+      <img
+        src="/home.png"
+        alt="Home"
+        className="w-24 cursor-pointer absolute top-4 left-4 z-50"
+        onClick={() => navigate("/")}
+      />
+
+
+      {/* 🐝 Floating Bees */}
       {bees.map((bee) => (
         <img
           key={bee.id}
@@ -112,15 +111,14 @@ export default function Login() {
             animationDelay: bee.animationDelay,
             cursor: "pointer",
             position: "absolute",
-            zIndex: 50,
+            zIndex: 40,
           }}
         />
       ))}
 
+      {/* 🧾 Login Box */}
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-10 text-center">
-        <h1 className="text-2xl font-bold text-yellow-700 mb-1">
-          Welcome to CleverBee
-        </h1>
+        <h1 className="text-2xl font-bold text-yellow-700 mb-1">Welcome to CleverBee</h1>
         <p className="text-gray-500 mb-6">Buzz into something amazing!</p>
 
         <div className="text-left">
@@ -169,7 +167,7 @@ export default function Login() {
           onClick={handleSignIn}
           disabled={loading}
         >
-          {loading ? "Signing In..." : "Sign In"}
+          {loading ? "Logging In..." : "Log In"}
         </button>
 
         <p className="mt-4 text-sm text-gray-600">
