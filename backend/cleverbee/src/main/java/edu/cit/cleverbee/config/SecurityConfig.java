@@ -33,7 +33,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(
+                    "/api/auth/**",        // ✅ Allow auth endpoints
+                    "/api/files/upload",   // ✅ Allow file upload endpoint
+                    "/uploads/**"          // ✅ Allow uploaded file access (IMPORTANT)
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form.disable())

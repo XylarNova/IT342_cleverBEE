@@ -52,19 +52,20 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     const { username, firstName, lastName, email, password, confirmPassword } = formData;
-
+  
     if (!username || !firstName || !lastName || !email || !password || !confirmPassword) {
       alert("Please fill in all fields.");
       return;
     }
-
+  
     if (password.trim() !== confirmPassword.trim()) {
       alert("Passwords do not match.");
       return;
     }
-
+  
     setLoading(true);
     try {
+      // 1. First, register the user
       await axios.post("/api/auth/register", {
         username,
         firstName,
@@ -72,11 +73,27 @@ export default function SignUp() {
         email,
         password,
       });
-
+  
+      // 2. Then, immediately login
+      const loginResponse = await axios.post("/api/auth/login", {
+        email,
+        password,
+      });
+  
+      const { token } = loginResponse.data;
+  
+      // 3. Save the token
+      localStorage.setItem("token", token);
+  
+      // (Optional: if you also want to save username for Welcome page)
+      localStorage.setItem("username", username);
+  
+      // 4. Then, show success animation then Welcome page
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/welcome");
       }, 3000);
+  
     } catch (error) {
       console.error(error.response?.data?.message || "Registration failed");
       alert(error.response?.data?.message || "Registration failed");
@@ -84,6 +101,8 @@ export default function SignUp() {
       setLoading(false);
     }
   };
+  
+    
 
   if (showSuccess) {
     return (
