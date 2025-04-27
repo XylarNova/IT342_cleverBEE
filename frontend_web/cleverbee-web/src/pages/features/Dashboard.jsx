@@ -10,13 +10,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token'); // moved inside useEffect
+  
     if (!token) {
-      console.error('No token found, redirecting to login.');
+      console.warn('No token found, redirecting to login.');
       navigate('/login');
       return;
     }
-
+  
     const fetchUser = async () => {
       try {
         const response = await fetch('http://localhost:8080/api/user/me', {
@@ -24,11 +25,11 @@ const Dashboard = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         if (!response.ok) {
           throw new Error('Failed to fetch user');
         }
-
+  
         const data = await response.json();
         setUser(data);
       } catch (error) {
@@ -36,15 +37,16 @@ const Dashboard = () => {
         navigate('/login');
       }
     };
-
+  
     fetchUser();
-
+  
     const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
     const storedSchedules = JSON.parse(localStorage.getItem('schedules')) || [];
-
+  
     setTasks(storedTasks.slice(0, 3));
     setSchedules(storedSchedules.slice(0, 3));
   }, [navigate]);
+  
 
   return (
     <div className="flex min-h-screen bg-yellow-50 text-gray-900">
