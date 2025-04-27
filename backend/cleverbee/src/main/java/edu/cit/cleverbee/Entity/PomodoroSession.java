@@ -1,145 +1,72 @@
 package edu.cit.cleverbee.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "pomodoro_sessions")
 public class PomodoroSession {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private String title; // Session title like "Study Math"
 
     @Column(nullable = false)
-    private Integer duration;
+    private String mode; // focus / short / long
 
     @Column(nullable = false)
-    private Integer shortBreak;
+    private int sessionsBeforeLongBreak; // Number of pomodoros before long break
 
     @Column(nullable = false)
-    private Integer longBreak;
+    private String status; // "Ongoing" or "Completed"
 
-    @Column(nullable = false)
-    private Integer sessionsUntilLongBreak;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // 👤 Linked logged-in user
 
-    @Column(nullable = false)
-    private Integer completedSessions;
-
-    @Column(nullable = false)
-    private String status; // RUNNING, PAUSED, COMPLETED
-
-    @Column(nullable = false)
-    private Integer timeRemaining;
-
-    @Column(nullable = false)
-    private LocalDateTime startTime;
-
-    private LocalDateTime pauseTime;
-
-    private LocalDateTime endTime;
+    // --- Getters and Setters ---
 
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public String getMode() {
+        return mode;
+    }
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
-    public Integer getDuration() {
-        return duration;
+    public int getSessionsBeforeLongBreak() {
+        return sessionsBeforeLongBreak;
     }
-
-    public void setDuration(Integer duration) {
-        this.duration = duration;
-    }
-
-    public Integer getShortBreak() {
-        return shortBreak;
-    }
-
-    public void setShortBreak(Integer shortBreak) {
-        this.shortBreak = shortBreak;
-    }
-
-    public Integer getLongBreak() {
-        return longBreak;
-    }
-
-    public void setLongBreak(Integer longBreak) {
-        this.longBreak = longBreak;
-    }
-
-    public Integer getSessionsUntilLongBreak() {
-        return sessionsUntilLongBreak;
-    }
-
-    public void setSessionsUntilLongBreak(Integer sessionsUntilLongBreak) {
-        this.sessionsUntilLongBreak = sessionsUntilLongBreak;
-    }
-
-    public Integer getCompletedSessions() {
-        return completedSessions;
-    }
-
-    public void setCompletedSessions(Integer completedSessions) {
-        this.completedSessions = completedSessions;
+    public void setSessionsBeforeLongBreak(int sessionsBeforeLongBreak) {
+        this.sessionsBeforeLongBreak = sessionsBeforeLongBreak;
     }
 
     public String getStatus() {
         return status;
     }
-
     public void setStatus(String status) {
         this.status = status;
     }
 
-    public Integer getTimeRemaining() {
-        return timeRemaining;
+    public User getUser() {
+        return user;
     }
-
-    public void setTimeRemaining(Integer timeRemaining) {
-        this.timeRemaining = timeRemaining;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getPauseTime() {
-        return pauseTime;
-    }
-
-    public void setPauseTime(LocalDateTime pauseTime) {
-        this.pauseTime = pauseTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
+    public void setUser(User user) {
+        this.user = user;
     }
 }

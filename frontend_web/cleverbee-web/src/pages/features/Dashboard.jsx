@@ -10,7 +10,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token'); // moved inside useEffect
+    const token = localStorage.getItem('token'); 
   
     if (!token) {
       console.warn('No token found, redirecting to login.');
