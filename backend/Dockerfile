@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy all project files
 COPY . .
 
-# Build the project (skip tests to make it faster)
-RUN ./mvnw clean package -DskipTests
+# Build the project using system Maven (no ./mvnw needed)
+RUN mvn clean package -DskipTests
 
 # Use a smaller image just for running
 FROM eclipse-temurin:21-jdk
