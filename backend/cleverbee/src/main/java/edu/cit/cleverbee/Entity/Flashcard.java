@@ -1,15 +1,6 @@
 package edu.cit.cleverbee.Entity;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +8,13 @@ import java.util.List;
 @Entity
 @Table(name = "flashcards")
 public class Flashcard {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private String userId; // Link to the logged-in user
 
     @Column(nullable = false)
     private String question;
@@ -30,7 +22,7 @@ public class Flashcard {
     @Column(nullable = false, length = 1000)
     private String answer;
 
-    private String category;
+    private String category; // 💬 Topic title (Biology, Math, etc.)
 
     @ElementCollection
     @CollectionTable(name = "flashcard_tags", joinColumns = @JoinColumn(name = "flashcard_id"))
@@ -42,67 +34,40 @@ public class Flashcard {
 
     private LocalDateTime updatedAt;
 
-    public Long getId() {
-        return id;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
-    public String getUserId() {
-        return userId;
-    }
+    // --- Getters and Setters ---
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getQuestion() {
-        return question;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setQuestion(String question) {
-        this.question = question;
-    }
+    public String getQuestion() { return question; }
+    public void setQuestion(String question) { this.question = question; }
 
-    public String getAnswer() {
-        return answer;
-    }
+    public String getAnswer() { return answer; }
+    public void setAnswer(String answer) { this.answer = answer; }
 
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public String getCategory() {
-        return category;
-    }
+    public List<String> getTags() { return tags; }
+    public void setTags(List<String> tags) { this.tags = tags; }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

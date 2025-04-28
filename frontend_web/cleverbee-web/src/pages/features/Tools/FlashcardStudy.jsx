@@ -1,7 +1,10 @@
+// src/pages/features/FlashcardStudy.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaArrowRight, FaRandom } from 'react-icons/fa';
 import { FiMoreVertical } from 'react-icons/fi';
+import { updateFlashcard, deleteFlashcard } from '../../../api/flashcardApi';
 
 const FlashcardStudy = () => {
   const navigate = useNavigate();
@@ -23,7 +26,7 @@ const FlashcardStudy = () => {
   }, [topic.flashcards]);
 
   const card = shuffledCards[index] || { question: '', answer: '', id: null };
-  const progress = ((index + 1) / shuffledCards.length) * 100;
+  const progress = shuffledCards.length > 0 ? ((index + 1) / shuffledCards.length) * 100 : 0;
 
   const reshuffle = () => {
     const newShuffle = [...topic.flashcards].sort(() => Math.random() - 0.5);
@@ -32,22 +35,39 @@ const FlashcardStudy = () => {
     setShowAnswer(false);
   };
 
-  const confirmDelete = () => {
-    const updated = shuffledCards.filter((_, i) => i !== index);
-    setShuffledCards(updated);
-    setIndex(0);
-    setShowAnswer(false);
-    setShowOptions(false);
-    setShowDeleteConfirm(false);
+  const handleEditSave = async () => {
+    try {
+      await updateFlashcard(card.id, {
+        question: editQ,
+        answer: editA,
+        category: topic.label,
+        tags: [],
+      });
+
+      const updated = [...shuffledCards];
+      updated[index].question = editQ;
+      updated[index].answer = editA;
+      setShuffledCards(updated);
+
+      setEditing(false);
+      setShowAnswer(false);
+    } catch (error) {
+      console.error('Failed to update flashcard', error);
+    }
   };
 
-  const handleEditSave = () => {
-    const updated = [...shuffledCards];
-    updated[index].question = editQ;
-    updated[index].answer = editA;
-    setShuffledCards(updated);
-    setEditing(false);
-    setShowAnswer(false);
+  const confirmDelete = async () => {
+    try {
+      await deleteFlashcard(card.id);
+      const updated = shuffledCards.filter((_, i) => i !== index);
+      setShuffledCards(updated);
+      setIndex(0);
+      setShowAnswer(false);
+      setShowOptions(false);
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error('Failed to delete flashcard', error);
+    }
   };
 
   return (
@@ -64,40 +84,40 @@ const FlashcardStudy = () => {
         </div>
 
         <div className="bg-white border border-yellow-300 rounded-2xl shadow-md p-8 relative">
-          {/* More Options Button */}
+          {/* More Options */}
           <div className="absolute top-4 right-4 z-20 w-10 h-10">
-  <div className="relative w-full h-full">
-    <button
-      onClick={() => setShowOptions(prev => !prev)}
-      className="w-full h-full flex items-center justify-center"
-    >
-      <FiMoreVertical className="text-gray-500 text-xl hover:text-gray-700" />
-    </button>
-    {showOptions && (
-      <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-        <button
-          onClick={() => {
-            setEditQ(card.question);
-            setEditA(card.answer);
-            setEditing(true);
-            setShowOptions(false);
-          }}
-          className="block w-full text-left px-4 py-2 text-sm hover:bg-yellow-100"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-        >
-          Delete
-        </button>
-      </div>
-    )}
-  </div>
-</div>
+            <div className="relative w-full h-full">
+              <button
+                onClick={() => setShowOptions(prev => !prev)}
+                className="w-full h-full flex items-center justify-center"
+              >
+                <FiMoreVertical className="text-gray-500 text-xl hover:text-gray-700" />
+              </button>
+              {showOptions && (
+                <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <button
+                    onClick={() => {
+                      setEditQ(card.question);
+                      setEditA(card.answer);
+                      setEditing(true);
+                      setShowOptions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-yellow-100"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
-
+          {/* Flashcard Progress */}
           <div className="mb-4">
             <p className="text-sm text-gray-500 text-center">
               Card {index + 1} of {shuffledCards.length}
@@ -110,12 +130,14 @@ const FlashcardStudy = () => {
             </div>
           </div>
 
+          {/* Flashcard Content */}
           <div className="text-center min-h-[6rem] mt-6">
             <h2 className="text-2xl font-semibold text-gray-800">
               {showAnswer ? card.answer : card.question}
             </h2>
           </div>
 
+          {/* Toggle Question/Answer Button */}
           <div className="flex justify-center mt-6">
             <button
               onClick={() => setShowAnswer(!showAnswer)}
@@ -125,6 +147,7 @@ const FlashcardStudy = () => {
             </button>
           </div>
 
+          {/* Navigation Buttons */}
           <div className="flex justify-between mt-10 items-center">
             <button
               onClick={() => {
@@ -193,7 +216,7 @@ const FlashcardStudy = () => {
         </div>
       )}
 
-      {/* Delete Confirm Modal (Schedule style) */}
+      {/* Delete Confirm Modal */}
       {showDeleteConfirm && (
         <div className="modal-overlay">
           <div className="modal-box text-center">
