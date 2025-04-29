@@ -1,5 +1,3 @@
-// src/pages/features/FlashcardStudy.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaArrowRight, FaRandom } from 'react-icons/fa';
@@ -137,7 +135,7 @@ const FlashcardStudy = () => {
             </h2>
           </div>
 
-          {/* Toggle Question/Answer Button */}
+          {/* Toggle Button */}
           <div className="flex justify-center mt-6">
             <button
               onClick={() => setShowAnswer(!showAnswer)}

@@ -2,20 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlay, FaPause, FaRedo, FaArrowLeft, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import api from '../../../api/api'; // ✅ Using your deployed backend API connector
 
-// 🌟 Setup axios API
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
-});
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
+// 🌟 Honeycomb SVG
 const HoneycombSVG = ({ children }) => (
   <svg viewBox="0 0 200 173.2" width="300" height="260" className="drop-shadow-2xl">
     <defs>
@@ -38,6 +27,7 @@ const HoneycombSVG = ({ children }) => (
   </svg>
 );
 
+// 🌟 Main Pomodoro component
 const Pomodoro = () => {
   const navigate = useNavigate();
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreak] = useState(4);
@@ -49,6 +39,7 @@ const Pomodoro = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [cycleCount, setCycleCount] = useState(0);
+
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('cleverbee_sound');
     return saved === null ? true : JSON.parse(saved);
@@ -57,6 +48,7 @@ const Pomodoro = () => {
 
   const intervalRef = useRef(null);
   const tickAudio = useRef(null);
+  const bellAudio = useRef(null); // 🛎️ Bell for timer end
 
   const MODES = {
     focus: 25 * 60,
@@ -69,11 +61,10 @@ const Pomodoro = () => {
     short: "Good job! Time for a cozy break 🍵",
     long: "You're amazing! Take a well-earned rest 🌙",
   };
-
-  // 🛠 Load sessions
+  // 🛠 Fetch sessions from backend
   const fetchSessions = async () => {
     try {
-      const res = await api.get('/pomodoro/sessions'); // Updated to match backend API
+      const res = await api.get('/pomodoro/sessions'); // ✅ Get sessions from backend
       setSessions(res.data);
     } catch (err) {
       console.error('Error fetching sessions:', err);
@@ -83,14 +74,17 @@ const Pomodoro = () => {
   };
 
   useEffect(() => {
-    fetchSessions(); // Fetch sessions when the component mounts
-  }, []); // Empty dependency array to run only once
+    fetchSessions(); // 📥 Load sessions on mount
+  }, []);
 
-  // 🎵 Sound setup
+  // 🎵 Setup sounds
   useEffect(() => {
-    const tick = new Audio('/tick.mp3');
+    const tick = new Audio('/tick.mp3'); // 🐝 ticking sound
+    const bell = new Audio('/bell.mp3'); // 🛎️ end timer sound
     tick.loop = false;
+    bell.loop = false;
     tickAudio.current = tick;
+    bellAudio.current = bell;
 
     const loopTick = () => {
       if (tick.currentTime >= 27.7) {
@@ -105,6 +99,7 @@ const Pomodoro = () => {
     };
   }, []);
 
+  // 🔈 Manage sound toggle
   useEffect(() => {
     localStorage.setItem('cleverbee_sound', JSON.stringify(soundEnabled));
     if (!soundEnabled && isRunning) {
@@ -114,12 +109,14 @@ const Pomodoro = () => {
     }
   }, [soundEnabled, isRunning]);
 
+  // 🕰️ Format time helper
   const formatTime = (sec) => {
     const m = String(Math.floor(sec / 60)).padStart(2, '0');
     const s = String(sec % 60).padStart(2, '0');
     return `${m}:${s}`;
   };
 
+  // 🔄 Switch Pomodoro mode
   const switchMode = (mode) => {
     clearInterval(intervalRef.current);
     tickAudio.current.pause();
@@ -128,70 +125,100 @@ const Pomodoro = () => {
     setTimeLeft(MODES[mode]);
     setCycleCount(0);
   };
-
-  // 🍯 ADD a new session (connected to backend)
+  // ➕ Add a new session (save to backend)
   const handleAddSession = async () => {
-    if (sessionTitle.trim() === '' || sessionsBeforeLongBreak <= 0) {
-      return;
-    }
+    if (sessionTitle.trim() === '' || sessionsBeforeLongBreak <= 0) return;
     try {
-      const userResponse = await api.get('/user/me'); // 🐝 Fetch current user
+      const userResponse = await api.get('/user/me'); // 🧑‍💻 Get current logged-in user
       const userId = userResponse.data.id;
 
       const newSession = {
         title: sessionTitle,
         mode: currentMode,
-        sessionsBeforeLongBreak: sessionsBeforeLongBreak,
+        sessionsBeforeLongBreak,
         status: "Ongoing",
-        userId: userId, // 🐝 Add userId
+        userId, // 🐝
       };
 
-      await api.post('/pomodoro/sessions', newSession); // Updated to backend API path
-
-      fetchSessions(); // reload sessions
+      await api.post('/pomodoro/sessions', newSession);
+      fetchSessions();
       setSessionTitle('');
       setSessionsBeforeLongBreak(4);
     } catch (error) {
-      console.error("Error adding session:", error);
+      console.error('Error adding session:', error);
     }
   };
 
-  // ✏️ EDIT session title (connected to backend)
+  // ✏️ Edit session title
   const handleEditSession = async (id, currentTitle) => {
     const newTitle = prompt('Edit Session Title', currentTitle);
     if (newTitle && newTitle.trim() !== '') {
       try {
-        const response = await api.put(`/pomodoro/sessions/${id}`, { // Updated to backend API path
-          title: newTitle,
-        });
-        setSessions((prev) =>
-          prev.map((s) => (s.id === id ? { ...s, title: response.data.title } : s))
-        );
+        const res = await api.put(`/pomodoro/sessions/${id}`, { title: newTitle });
+        setSessions(prev => prev.map(s => (s.id === id ? { ...s, title: res.data.title } : s)));
       } catch (error) {
         console.error('Error editing session:', error);
       }
     }
   };
 
-  // 🗑️ DELETE session (connected to backend)
+  // 🗑️ Delete session
   const handleDeleteSession = async (id) => {
     if (window.confirm('Are you sure you want to delete this session?')) {
       try {
-        await api.delete(`/pomodoro/sessions/${id}`); // Updated to backend API path
-        setSessions((prev) => prev.filter((s) => s.id !== id));
+        await api.delete(`/pomodoro/sessions/${id}`);
+        setSessions(prev => prev.filter(s => s.id !== id));
       } catch (error) {
         console.error('Error deleting session:', error);
       }
     }
   };
 
+  // ▶️ Start Timer
+  const startTimer = () => {
+    setIsRunning(true);
+    if (soundEnabled) tickAudio.current.play();
+    intervalRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev === 0) {
+          clearInterval(intervalRef.current);
+          bellAudio.current.play(); // 🛎️ Play bell when timer ends
+          setCycleCount((count) => count + 1);
+          if (currentMode === 'focus' && (cycleCount + 1) % sessionsBeforeLongBreak === 0) {
+            switchMode('long');
+          } else {
+            switchMode('short');
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // ⏸ Pause Timer
+  const pauseTimer = () => {
+    clearInterval(intervalRef.current);
+    tickAudio.current.pause();
+    setIsRunning(false);
+  };
+
+  // 🔄 Reset Timer
+  const resetTimer = () => {
+    clearInterval(intervalRef.current);
+    tickAudio.current.pause();
+    setIsRunning(false);
+    setTimeLeft(MODES[currentMode]);
+    setCycleCount(0);
+  };
   return (
     <div className="min-h-screen bg-yellow-100 relative flex flex-col items-center justify-start px-6 py-8 font-sans overflow-hidden"
       style={{
         backgroundImage: 'radial-gradient(circle at 20% 20%, #fef3c7 0%, #fde68a 20%, #fef9c3 100%)',
       }}
     >
-      {/* 🐝 Floating Bees */}
+
+      {/* Floating Bees (if enabled) */}
       {beesEnabled && (
         <>
           {[...Array(10)].map((_, idx) => (
@@ -216,11 +243,11 @@ const Pomodoro = () => {
       )}
 
       {/* 🔙 Back Button */}
-      <button onClick={() => navigate('/tools')} className="btn-back flex items-center gap-2">
+      <button onClick={() => navigate('/tools')} className="btn-back flex items-center gap-2 mt-4">
         <FaArrowLeft /> Back to Study Tools
       </button>
 
-      {/* ✨ Tabs */}
+      {/* Tabs for Modes */}
       <div className="flex gap-4 my-4">
         {['focus', 'short', 'long'].map((mode) => (
           <button
@@ -235,20 +262,20 @@ const Pomodoro = () => {
         ))}
       </div>
 
-      {/* 🐝 Bee Mascot */}
+      {/* Mascot Bee */}
       <div className="w-20 h-20 bg-white border-4 border-yellow-400 rounded-full flex items-center justify-center mb-4 shadow-md animate-bounce">
         <img src="/mainBee.png" alt="Bee mascot" className="w-14 h-14 object-contain" />
       </div>
 
-      {/* 🍯 Timer */}
+      {/* Timer */}
       <HoneycombSVG>{formatTime(timeLeft)}</HoneycombSVG>
 
-      {/* 📢 Mode Label */}
+      {/* Mode Label */}
       <div className="mt-4 text-xl font-bold text-yellow-700 flex items-center gap-2">
         {currentMode === 'focus' ? '🍅 Pomodoro' : currentMode === 'short' ? '🍵 Short Break' : '🌙 Long Break'}
       </div>
 
-      {/* 🌟 Motivational Quote */}
+      {/* Motivational Quote */}
       <div className="mt-4 text-lg font-medium text-gray-700 text-center">
         <AnimatePresence mode="wait">
           <motion.div
@@ -262,7 +289,7 @@ const Pomodoro = () => {
         </AnimatePresence>
       </div>
 
-      {/* 📝 Session Inputs */}
+      {/* Session Title Input */}
       <div className="mt-8 w-full max-w-2xl flex flex-col items-center gap-4">
         <div className="flex flex-col w-full">
           <label className="text-md font-bold text-yellow-700 mb-2 flex items-center gap-2">
@@ -277,6 +304,7 @@ const Pomodoro = () => {
           />
         </div>
 
+        {/* Sessions Before Long Break Input */}
         <div className="flex flex-col w-full">
           <label className="text-md font-bold text-yellow-700 mb-2 flex items-center gap-2">
             📈 Sessions Before Long Break
@@ -290,6 +318,7 @@ const Pomodoro = () => {
           />
         </div>
 
+        {/* Add Session Button */}
         <button
           onClick={handleAddSession}
           className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded-full shadow-lg text-xl transition-transform transform hover:scale-105 w-full"
@@ -298,7 +327,7 @@ const Pomodoro = () => {
         </button>
       </div>
 
-      {/* 🎵 Toggles */}
+      {/* Sound and Bees Toggle */}
       <div className="mt-6 flex items-center gap-6">
         <label className="flex items-center text-sm font-semibold text-yellow-700 gap-2">
           <input
@@ -324,43 +353,21 @@ const Pomodoro = () => {
       <div className="mt-6 flex gap-4 flex-wrap justify-center">
         {!isRunning ? (
           <button
-            onClick={() => {
-              setIsRunning(true);
-              if (soundEnabled) tickAudio.current.play();
-              intervalRef.current = setInterval(() => {
-                setTimeLeft((prev) => {
-                  if (prev === 0) {
-                    clearInterval(intervalRef.current);
-                    return 0;
-                  }
-                  return prev - 1;
-                });
-              }, 1000);
-            }}
+            onClick={startTimer}
             className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-full shadow-lg text-xl font-bold transition-transform transform hover:scale-105"
           >
             <FaPlay className="inline mr-2" /> Start
           </button>
         ) : (
           <button
-            onClick={() => {
-              clearInterval(intervalRef.current);
-              tickAudio.current.pause();
-              setIsRunning(false);
-            }}
+            onClick={pauseTimer}
             className="bg-gray-200 hover:bg-gray-300 text-black px-8 py-3 rounded-full shadow-lg text-xl font-bold transition-transform transform hover:scale-105"
           >
             <FaPause className="inline mr-2" /> Pause
           </button>
         )}
         <button
-          onClick={() => {
-            clearInterval(intervalRef.current);
-            tickAudio.current.pause();
-            setIsRunning(false);
-            setTimeLeft(MODES[currentMode]);
-            setCycleCount(0);
-          }}
+          onClick={resetTimer}
           className="bg-red-400 hover:bg-red-500 text-white px-8 py-3 rounded-full shadow-lg text-xl font-bold transition-transform transform hover:scale-105"
         >
           <FaRedo className="inline mr-2" /> Reset
@@ -439,6 +446,7 @@ const Pomodoro = () => {
       <div className="mt-10 text-center text-gray-600 text-sm font-medium">
         “Stay sweet and focused.” – CleverBee 🍯
       </div>
+
     </div>
   );
 };

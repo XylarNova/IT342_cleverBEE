@@ -10,7 +10,13 @@ const QuizStart = () => {
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [score, setScore] = useState(null);
   const [showReview, setShowReview] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const setting = location.state?.timerSetting;
+    if (setting === 'fast') return 15;
+    if (setting === 'moderate') return 30;
+    return 60; // default slow
+  });
+  
   const [currentSlide, setCurrentSlide] = useState(0); // 👈 for animation keying
 
   const generateChoices = (correct, allAnswers) => {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";  // ✅ Replace 'axios' with your centralized API
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function SignUp() {
@@ -52,48 +52,47 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     const { username, firstName, lastName, email, password, confirmPassword } = formData;
-  
+
     if (!username || !firstName || !lastName || !email || !password || !confirmPassword) {
       alert("Please fill in all fields.");
       return;
     }
-  
+
     if (password.trim() !== confirmPassword.trim()) {
       alert("Passwords do not match.");
       return;
     }
-  
+
     setLoading(true);
     try {
-      // 1. First, register the user
-      await axios.post("/api/auth/register", {
+      // ✅ 1. First, register the user
+      await api.post("/auth/register", {
         username,
         firstName,
         lastName,
         email,
         password,
       });
-  
-      // 2. Then, immediately login
-      const loginResponse = await axios.post("/api/auth/login", {
+
+      // ✅ 2. Then, immediately login
+      const loginResponse = await api.post("/auth/login", {
         email,
         password,
       });
-  
+
       const { token } = loginResponse.data;
-  
-      // 3. Save the token
+
+      // ✅ 3. Save the token
       localStorage.setItem("token", token);
-  
-      // (Optional: if you also want to save username for Welcome page)
-      localStorage.setItem("username", username);
-  
-      // 4. Then, show success animation then Welcome page
+
+      localStorage.setItem("username", username); // Optional
+
+      // ✅ 4. Show success animation then Welcome page
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/welcome");
       }, 3000);
-  
+
     } catch (error) {
       console.error(error.response?.data?.message || "Registration failed");
       alert(error.response?.data?.message || "Registration failed");
@@ -101,8 +100,6 @@ export default function SignUp() {
       setLoading(false);
     }
   };
-  
-    
 
   if (showSuccess) {
     return (
@@ -121,7 +118,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center relative overflow-hidden px-4">
-      {/* 🏠 Home Button (Top Left) */}
+      {/* 🏠 Home Button */}
       <img
         src="/home.png"
         alt="Home"
@@ -160,6 +157,7 @@ export default function SignUp() {
         <p className="text-gray-500 mb-6">Join the hive today! 🐝</p>
 
         <div className="text-left mb-4 space-y-4">
+          {/* Username */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Username</label>
             <input
@@ -172,6 +170,7 @@ export default function SignUp() {
             />
           </div>
 
+          {/* First & Last Name */}
           <div className="flex flex-col sm:flex-row sm:gap-4">
             <div className="w-full sm:w-1/2">
               <label className="block text-gray-700 font-medium mb-1">First Name</label>
@@ -198,6 +197,7 @@ export default function SignUp() {
             </div>
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Email</label>
             <input
@@ -210,6 +210,7 @@ export default function SignUp() {
             />
           </div>
 
+          {/* Password */}
           <div className="relative">
             <label className="block text-gray-700 font-medium mb-1">Password</label>
             <input
@@ -230,6 +231,7 @@ export default function SignUp() {
             </button>
           </div>
 
+          {/* Confirm Password */}
           <div className="relative">
             <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
             <input
@@ -251,6 +253,7 @@ export default function SignUp() {
           </div>
         </div>
 
+        {/* Sign Up Button */}
         <button
           onClick={handleSignUp}
           disabled={loading}
@@ -261,6 +264,7 @@ export default function SignUp() {
           {loading ? "Signing Up..." : "Sign Up"}
         </button>
 
+        {/* Login Link */}
         <p className="mt-4 text-sm text-gray-600">
           Already have an account?{" "}
           <span

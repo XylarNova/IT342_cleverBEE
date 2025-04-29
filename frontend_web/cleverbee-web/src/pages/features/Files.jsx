@@ -1,17 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
 import Sidebar from './Sidebar';
 import { FaPlus, FaSearch, FaFolderPlus, FaEllipsisV } from 'react-icons/fa';
+import api from '../../api/api'; 
 
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
-});
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 const Files = () => {
   const fileInputRef = useRef(null);
@@ -327,7 +319,7 @@ const Files = () => {
        {/* File Name */}
       <div className="col-span-6 text-gray-700 font-medium">
         <a
-          href={`http://localhost:8080/uploads/${file.fileName}`}
+          href={`https://cleverbee-backend.onrender.com/uploads/${file.fileName}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
