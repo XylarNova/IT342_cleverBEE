@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './features/Sidebar';
-import axios from 'axios';
+import Sidebar from './features/Sidebar';  // Make sure the Sidebar is correctly imported
+import api from '../api/api';  // Import the API module
 
 const avatarOptions = [
   '/avatar1.png',
@@ -23,13 +23,14 @@ const Settings = () => {
     language: 'English',
   });
 
+  // Fetch user profile data from the backend
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
+    if (!token) return navigate('/login'); // Redirect if no token is found
 
     const fetchUser = async () => {
       try {
-        const { data } = await axios.get('http://localhost:8080/api/user/me', {
+        const { data } = await api.get('/user/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -44,6 +45,7 @@ const Settings = () => {
         setSelectedAvatar(data.profilePic || '/avatar1.png');
       } catch (err) {
         console.error('Failed to load user:', err);
+        alert('There was an error loading your profile. Please try again later.');
       }
     };
 
@@ -55,6 +57,7 @@ const Settings = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // Save changes to the backend
   const saveChanges = async () => {
     const token = localStorage.getItem('token');
   
@@ -64,25 +67,24 @@ const Settings = () => {
     }
   
     try {
-      await axios.put('http://localhost:8080/api/user/update', {
+      await api.put('/user/update', {
         firstName: formData.firstName,
         lastName: formData.lastName,
         username: formData.username,
-        profilePic: selectedAvatar, 
+        profilePic: selectedAvatar,
       }, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
-  
+
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Failed to update profile:', error);
       alert('Failed to update profile. Please try again.');
     }
   };
-  
 
   return (
     <div className="flex min-h-screen bg-yellow-50 text-gray-900">
@@ -111,9 +113,7 @@ const Settings = () => {
                       src={avatar}
                       onClick={() => setSelectedAvatar(avatar)}
                       alt="avatar"
-                      className={`w-12 h-12 rounded-full cursor-pointer border-2 transition hover:scale-110 ${
-                        selectedAvatar === avatar ? 'border-yellow-500' : 'border-transparent'
-                      }`}
+                      className={`w-12 h-12 rounded-full cursor-pointer border-2 transition hover:scale-110 ${selectedAvatar === avatar ? 'border-yellow-500' : 'border-transparent'}`}
                     />
                   ))}
                 </div>
@@ -145,7 +145,7 @@ const Settings = () => {
                   onChange={handleInputChange}
                   className="p-3 border border-gray-300 rounded-lg w-full bg-white"
                 />
-               <input
+                <input
                   type="email"
                   name="email"
                   placeholder="Email"
@@ -153,9 +153,6 @@ const Settings = () => {
                   readOnly
                   className="p-3 border border-gray-300 rounded-lg w-full bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
-
-
-
                 <button
                   onClick={saveChanges}
                   className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../Sidebar';
 import { useNavigate } from 'react-router-dom';
+import api from '../../../api/api'; // ✅ use your deployed backend connector
 
 const StudyTools = () => {
   const navigate = useNavigate();
@@ -13,7 +14,6 @@ const StudyTools = () => {
   const maxHours = 100;
 
   useEffect(() => {
-    // Fetch the logged-in user's data
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -23,20 +23,16 @@ const StudyTools = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/api/user/me', {
+        const response = await api.get('/user/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch user');
-        }
-
-        const data = await response.json();
+        const data = response.data;
         setUser({
-          name: data.username || data.name || 'Guest', // Ensure username is set, fallback to name if needed
-          profilePic: data.profilePic || '/default-avatar.png', // Fallback avatar
+          name: data.username || data.name || 'Guest',
+          profilePic: data.profilePic || '/default-avatar.png',
         });
       } catch (error) {
         console.error('Error fetching user data', error);
@@ -46,9 +42,10 @@ const StudyTools = () => {
 
     fetchUser();
 
-    // Simulate fetched study data
     const fetchStudyData = async () => {
-      const fetchedHours = 62; // Replace with real API or localStorage data
+      // If you have study hours tracking in backend, fetch it here.
+      // For now, still using dummy/fake data.
+      const fetchedHours = 62;
       setStudyHours(fetchedHours);
     };
 
@@ -111,23 +108,24 @@ const StudyTools = () => {
         <section>
           <h2 className="text-2xl font-bold text-yellow-600 mb-4">🛠️ Choose a Study Tool</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[{ label: 'Pomodoro Timer', image: 'pomodoro.png', color: 'from-pink-100 to-pink-200', route: '/tools/pomodoro' },
+            {[
+              { label: 'Pomodoro Timer', image: 'pomodoro.png', color: 'from-pink-100 to-pink-200', route: '/tools/pomodoro' },
               { label: 'Flashcards', image: 'flashcards.png', color: 'from-blue-100 to-blue-200', route: '/tools/flashcards' },
-              { label: 'Quiz', image: 'quiz.png', color: 'from-green-100 to-green-200', route: '/tools/quiz' }]
-              .map((tool) => (
-                <div
-                  key={tool.label}
-                  onClick={() => navigate(tool.route)}
-                  className={`rounded-3xl p-6 shadow-md hover:shadow-xl bg-gradient-to-br ${tool.color} flex flex-col items-center transition-transform transform hover:scale-105 cursor-pointer`}
-                >
-                  <img
-                    src={`/${tool.image}`}
-                    alt={tool.label}
-                    className="w-32 h-32 object-contain mb-4 drop-shadow-md"
-                  />
-                  <h3 className="text-xl font-bold text-gray-800">{tool.label}</h3>
-                </div>
-              ))}
+              { label: 'Quiz', image: 'quiz.png', color: 'from-green-100 to-green-200', route: '/tools/quiz' }
+            ].map((tool) => (
+              <div
+                key={tool.label}
+                onClick={() => navigate(tool.route)}
+                className={`rounded-3xl p-6 shadow-md hover:shadow-xl bg-gradient-to-br ${tool.color} flex flex-col items-center transition-transform transform hover:scale-105 cursor-pointer`}
+              >
+                <img
+                  src={`/${tool.image}`}
+                  alt={tool.label}
+                  className="w-32 h-32 object-contain mb-4 drop-shadow-md"
+                />
+                <h3 className="text-xl font-bold text-gray-800">{tool.label}</h3>
+              </div>
+            ))}
           </div>
         </section>
 

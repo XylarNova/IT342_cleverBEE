@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import api from "../api/api"; // 🛠️ Import the centralized API here
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,22 +18,14 @@ export default function Login() {
   };
 
   const bees = useMemo(() => {
-    return Array.from({ length: 12 }).map((_, i) => {
-      const randomTop = Math.floor(Math.random() * 85);
-      const randomLeft = Math.floor(Math.random() * 90);
-      const animationName = `beeFly${Math.floor(Math.random() * 3) + 1}`;
-      const animationDuration = (Math.random() * 4 + 5).toFixed(2);
-      const animationDelay = (Math.random() * 3).toFixed(2);
-
-      return {
-        id: i,
-        top: `${randomTop}vh`,
-        left: `${randomLeft}vw`,
-        animationName,
-        animationDuration: `${animationDuration}s`,
-        animationDelay: `${animationDelay}s`,
-      };
-    });
+    return Array.from({ length: 12 }).map((_, i) => ({
+      id: i,
+      top: `${Math.floor(Math.random() * 85)}vh`,
+      left: `${Math.floor(Math.random() * 90)}vw`,
+      animationName: `beeFly${Math.floor(Math.random() * 3) + 1}`,
+      animationDuration: `${(Math.random() * 4 + 5).toFixed(2)}s`,
+      animationDelay: `${(Math.random() * 3).toFixed(2)}s`,
+    }));
   }, []);
 
   const handleSignIn = async () => {
@@ -44,16 +36,11 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        { email, password },
-        { withCredentials: true }
-      );
-
+      const response = await api.post("/auth/login", { email, password }); // 🛠️ use centralized api
       const { token } = response.data;
       if (token) {
         localStorage.setItem("token", token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`; // 🛠️ Update Authorization
         setShowSuccess(true);
         setTimeout(() => navigate("/dashboard"), 2500);
       } else {
@@ -71,12 +58,7 @@ export default function Login() {
   if (showSuccess) {
     return (
       <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center text-center px-4">
-        <img
-          src="/bee.png"
-          alt="Bee"
-          className="w-24 mb-4 animate-bounce"
-          loading="lazy"
-        />
+        <img src="/bee.png" alt="Bee" className="w-24 mb-4 animate-bounce" loading="lazy" />
         <h1 className="text-3xl font-bold text-yellow-800 mb-2">Login Successful!</h1>
         <p className="text-gray-700">Buzzing into your dashboard... 🐝</p>
       </div>
@@ -92,7 +74,6 @@ export default function Login() {
         className="w-24 cursor-pointer absolute top-4 left-4 z-50"
         onClick={() => navigate("/")}
       />
-
 
       {/* 🐝 Floating Bees */}
       {bees.map((bee) => (

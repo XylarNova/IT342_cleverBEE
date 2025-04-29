@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { FiTrash2, FiEdit } from 'react-icons/fi';
 import Sidebar from './Sidebar';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import api from "../../api/api"; // Ensure correct API import path
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -24,10 +24,20 @@ const Tasks = () => {
 
   const fetchTasks = async () => {
     const token = localStorage.getItem("token");
-    const response = await axios.get('/api/tasks', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setTasks(response.data.data);
+    try {
+      const response = await api.get('/tasks', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Ensure the response data is an array and in the expected format
+      if (Array.isArray(response.data.data)) {
+        setTasks(response.data.data);
+      } else {
+        console.error("Tasks data is not in expected array format");
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
   };
 
   const addOrUpdateTask = async () => {
@@ -38,20 +48,25 @@ const Tasks = () => {
       endDate: newTask.endDate?.toISOString(),
     };
 
-    if (editingTaskId) {
-      await axios.put(`/api/tasks/${editingTaskId}`, taskData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } else {
-      await axios.post('/api/tasks', taskData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    try {
+      if (editingTaskId) {
+        // Update existing task
+        await api.put(`/tasks/${editingTaskId}`, taskData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        // Create new task
+        await api.post('/tasks', taskData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
+      setEditingTaskId(null);
+      setShowForm(false);
+      fetchTasks(); // Re-fetch tasks after adding/updating
+    } catch (error) {
+      console.error("Error adding/updating task:", error);
     }
-
-    setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
-    setEditingTaskId(null);
-    setShowForm(false);
-    fetchTasks();
   };
 
   const cancelForm = () => {
@@ -62,10 +77,14 @@ const Tasks = () => {
 
   const deleteTask = async (id) => {
     const token = localStorage.getItem("token");
-    await axios.delete(`/api/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchTasks();
+    try {
+      await api.delete(`/tasks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchTasks(); // Re-fetch tasks after deletion
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   const priorities = [

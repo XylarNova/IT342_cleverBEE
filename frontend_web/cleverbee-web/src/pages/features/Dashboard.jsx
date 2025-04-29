@@ -1,52 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
+import api from "../../api/api"; // Go up two directories to access 'api.js'
+
+
 
 const Dashboard = () => {
-  const [user, setUser] = useState({ name: 'Guest' });
+  const navigate = useNavigate();
+  const [user, setUser] = useState({ username: "Guest" });
   const [tasks, setTasks] = useState([]);
   const [schedules, setSchedules] = useState([]);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    const token = localStorage.getItem('token'); 
-  
-    if (!token) {
-      console.warn('No token found, redirecting to login.');
-      navigate('/login');
-      return;
-    }
-  
     const fetchUser = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/user/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch user');
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.warn("No token found, redirecting to login.");
+          navigate("/login");
+          return;
         }
-  
-        const data = await response.json();
-        setUser(data);
+
+        // ✅ Automatically uses token via api.js
+        const response = await api.get("/user/me");
+        setUser(response.data); 
       } catch (error) {
-        console.error('Unauthorized or error fetching user', error);
-        navigate('/login');
+        console.error("Unauthorized or error fetching user", error);
+        navigate("/login");
       }
     };
-  
+
     fetchUser();
-  
-    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const storedSchedules = JSON.parse(localStorage.getItem('schedules')) || [];
-  
+
+    const storedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    const storedSchedules = JSON.parse(localStorage.getItem("schedules")) || [];
+
     setTasks(storedTasks.slice(0, 3));
     setSchedules(storedSchedules.slice(0, 3));
   }, [navigate]);
-  
 
   return (
     <div className="flex min-h-screen bg-yellow-50 text-gray-900">
@@ -59,11 +50,11 @@ const Dashboard = () => {
           {/* LEFT COLUMN */}
           <div className="space-y-8">
             <section className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-200 flex items-center gap-4">
-            <img
-              src={user.profilePic || '/avatar1.png'}
-              alt="User Avatar"
-              className="w-20 h-20 rounded-full border-4 border-yellow-300 shadow-lg hover:scale-105 transition object-cover"
-            />
+              <img
+                src={user.profilePic || '/avatar1.png'}
+                alt="User Avatar"
+                className="w-20 h-20 rounded-full border-4 border-yellow-300 shadow-lg hover:scale-105 transition object-cover"
+              />
 
               <div>
                 <h2 className="text-xl font-bold text-yellow-600">
@@ -72,7 +63,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 mt-1">
                   Let’s achieve great things today!
                 </p>
-            
               </div>
             </section>
 
@@ -97,11 +87,11 @@ const Dashboard = () => {
                     <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${
-                          task.priority === 'high'
-                            ? 'bg-red-500'
-                            : task.priority === 'medium'
-                            ? 'bg-blue-400'
-                            : 'bg-green-400'
+                          task.priority === "high"
+                            ? "bg-red-500"
+                            : task.priority === "medium"
+                            ? "bg-blue-400"
+                            : "bg-green-400"
                         }`}
                         style={{ width: `${task.progress}%` }}
                       />
@@ -140,8 +130,8 @@ const CalendarCard = () => {
   const today = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  const monthName = currentDate.toLocaleString('default', { month: 'long' });
+  const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const monthName = currentDate.toLocaleString("default", { month: "long" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startDay = new Date(year, month, 1).getDay();
 
@@ -156,7 +146,7 @@ const CalendarCard = () => {
           onClick={() => setCurrentDate(new Date(year, month - 1))}
           className="text-lg font-bold text-yellow-500 hover:text-yellow-600"
         >
-          {'<'}
+          {"<"}
         </button>
         <h2 className="text-xl font-bold text-gray-800">
           {monthName} {year}
@@ -165,7 +155,7 @@ const CalendarCard = () => {
           onClick={() => setCurrentDate(new Date(year, month + 1))}
           className="text-lg font-bold text-yellow-500 hover:text-yellow-600"
         >
-          {'>'}
+          {">"}
         </button>
       </div>
       <div className="grid grid-cols-7 text-center font-semibold text-sm mb-2 text-gray-600">
@@ -183,14 +173,14 @@ const CalendarCard = () => {
             <div
               key={i}
               className={`py-2 rounded-md ${
-                date ? 'hover:bg-yellow-100' : ''
+                date ? "hover:bg-yellow-100" : ""
               } ${
                 isToday
-                  ? 'bg-yellow-300 ring-2 ring-yellow-500 font-bold text-white'
-                  : 'text-gray-700'
+                  ? "bg-yellow-300 ring-2 ring-yellow-500 font-bold text-white"
+                  : "text-gray-700"
               }`}
             >
-              {date || ''}
+              {date || ""}
             </div>
           );
         })}

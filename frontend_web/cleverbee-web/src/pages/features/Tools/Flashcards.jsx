@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaPlusCircle, FaTrash } from 'react-icons/fa';
-import { getFlashcards, createFlashcards, deleteFlashcardsByCategory, updateFlashcard } from '../../../api/flashcardApi';
+import { getFlashcards, createFlashcards, deleteFlashcardsByCategory, updateFlashcard, deleteFlashcard } from '../../../api/flashcardApi';
 
 const Flashcards = () => {
   const navigate = useNavigate();
@@ -19,13 +19,13 @@ const Flashcards = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    fetchFlashcards();
+    fetchFlashcardsData();
   }, []);
 
-  const fetchFlashcards = async () => {
+  const fetchFlashcardsData = async () => {
     try {
-      const response = await getFlashcards();
-      const grouped = groupByCategory(response.data);
+      const res = await getFlashcards();
+      const grouped = groupByCategory(res.data);
       setTopics(grouped);
     } catch (error) {
       console.error('Failed to fetch flashcards', error);
@@ -55,17 +55,17 @@ const Flashcards = () => {
 
   const handleAddTopic = async () => {
     if (topicName && flashcards[0].question && flashcards[0].answer) {
-      const newFlashcards = flashcards.map(card => ({
-        question: card.question,
-        answer: card.answer,
-        category: topicName,
-        tags: [],
-      }));
-
       try {
-        await createFlashcards(newFlashcards);
+        const flashcardsToCreate = flashcards.map(card => ({
+          question: card.question,
+          answer: card.answer,
+          category: topicName,
+          tags: [],
+        }));
+
+        await createFlashcards(flashcardsToCreate);
         showSuccess('Topic created successfully!');
-        fetchFlashcards();
+        fetchFlashcardsData();
       } catch (error) {
         console.error('Failed to create flashcards', error);
       }
@@ -76,6 +76,46 @@ const Flashcards = () => {
     }
   };
 
+  const handleSaveEdit = async () => {
+    try {
+      for (const card of editFlashcards) {
+        await updateFlashcard(card.id, {
+          question: card.question,
+          answer: card.answer,
+          category: editTopicName,
+          tags: [],
+        });
+      }
+      showSuccess('Flashcards updated successfully!');
+      fetchFlashcardsData();
+    } catch (error) {
+      console.error('Failed to update flashcards', error);
+    }
+
+    setEditingTopic(null);
+    setEditTopicName('');
+    setEditFlashcards([]);
+    setShowForm(false);
+  };
+
+  const confirmDeleteTopic = async () => {
+    if (!topicToDelete) return;
+    try {
+      for (const flashcard of topicToDelete.flashcards) {
+        await deleteFlashcard(flashcard.id);
+      }
+      showSuccess('Topic deleted successfully!');
+      fetchFlashcardsData();
+    } catch (error) {
+      console.error('Failed to delete topic', error);
+    }
+    setTopicToDelete(null);
+  };
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
   const handleStudyTopic = (topic) => {
     navigate('/study', { state: { topic } });
   };
@@ -84,24 +124,10 @@ const Flashcards = () => {
     navigate('/quiz-start', { state: { topic } });
   };
 
-  const confirmDeleteTopic = async () => {
-    if (!topicToDelete) return;
-    try {
-      await deleteFlashcardsByCategory(topicToDelete.label);
-      showSuccess('Topic deleted successfully!');
-      fetchFlashcards();
-    } catch (error) {
-      console.error('Failed to delete topic', error);
-    }
-    setTopicToDelete(null);
-  };
-
-  const showSuccess = (message) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(''), 3000);
-  };
   return (
     <div className="min-h-screen bg-yellow-50 px-4 py-8 flex flex-col items-center relative">
+
+      {/* HEADER and BUTTONS */}
       <div className="w-full max-w-6xl flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <button
           onClick={() => navigate('/tools')}
@@ -109,46 +135,31 @@ const Flashcards = () => {
         >
           <FaArrowLeft /> Back to Study Tools
         </button>
-        <button className="add-button flex items-center gap-2" onClick={() => { setShowForm(true); setEditingTopic(null); }}>
+        <button
+          onClick={() => { setShowForm(true); setEditingTopic(null); }}
+          className="add-button flex items-center gap-2"
+        >
           <FaPlusCircle className="text-lg" /> Create Flashcards
         </button>
       </div>
 
-      {/* Form Modal (Create OR Edit) */}
+      {/* FORM Modal (CREATE or EDIT Flashcards) */}
       {showForm && (
         <div className="modal-overlay">
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               if (editingTopic) {
-                // Editing an existing topic
-                try {
-                  for (const card of editFlashcards) {
-                    await updateFlashcard(card.id, {
-                      question: card.question,
-                      answer: card.answer,
-                      category: editTopicName,
-                      tags: [],
-                    });
-                  }
-                  showSuccess('Flashcards updated successfully!');
-                  fetchFlashcards();
-                } catch (error) {
-                  console.error('Failed to update flashcards', error);
-                }
-                setEditingTopic(null);
-                setEditTopicName('');
-                setEditFlashcards([]);
+                handleSaveEdit();
               } else {
-                // Creating new topic
                 handleAddTopic();
               }
-              setShowForm(false);
             }}
             className="modal-box space-y-4 max-h-[90vh] overflow-y-auto"
           >
             <h3 className="text-xl font-bold text-yellow-800 flex items-center gap-2">
-              <FaPlusCircle className="text-yellow-500" /> {editingTopic ? 'Edit Flashcards' : 'Create Flashcards'}
+              <FaPlusCircle className="text-yellow-500" />
+              {editingTopic ? 'Edit Flashcards' : 'Create Flashcards'}
             </h3>
 
             {/* Topic Name */}
@@ -192,26 +203,36 @@ const Flashcards = () => {
               </div>
             ))}
 
-            {/* Add New Flashcard */}
+            {/* Add Another Flashcard */}
             {!editingTopic && (
-              <button type="button" onClick={handleAddFlashcard} className="text-sm text-yellow-700 hover:underline">
+              <button
+                type="button"
+                onClick={handleAddFlashcard}
+                className="text-sm text-yellow-700 hover:underline"
+              >
                 + Add another flashcard
               </button>
             )}
 
-            {/* Save Buttons */}
+            {/* Form Buttons */}
             <div className="flex justify-end gap-2 pt-4">
-              <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 transition">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="text-sm px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 transition"
+              >
                 Cancel
               </button>
-              <button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-white text-sm px-4 py-2 rounded-full font-semibold transition shadow">
+              <button
+                type="submit"
+                className="bg-yellow-400 hover:bg-yellow-500 text-white text-sm px-4 py-2 rounded-full font-semibold transition shadow"
+              >
                 Save
               </button>
             </div>
           </form>
         </div>
       )}
-
       {/* Topics List */}
       <div className="bg-white w-full max-w-6xl rounded-3xl shadow-lg p-6 md:p-10 space-y-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -253,10 +274,16 @@ const Flashcards = () => {
                 </div>
                 <span className="text-sm font-medium text-yellow-700 mb-4">{topic.flashcards.length} cards</span>
                 <div className="flex flex-col gap-2">
-                  <button onClick={() => handleStudyTopic(topic)} className="bg-yellow-400 text-white font-semibold px-4 py-2 rounded-full hover:bg-yellow-500">
+                  <button
+                    onClick={() => handleStudyTopic(topic)}
+                    className="bg-yellow-400 text-white font-semibold px-4 py-2 rounded-full hover:bg-yellow-500"
+                  >
                     Study
                   </button>
-                  <button onClick={() => handleStartQuiz(topic)} className="bg-white text-yellow-600 font-semibold px-4 py-2 rounded-full border border-yellow-400 hover:bg-yellow-50">
+                  <button
+                    onClick={() => handleStartQuiz(topic)}
+                    className="bg-white text-yellow-600 font-semibold px-4 py-2 rounded-full border border-yellow-400 hover:bg-yellow-50"
+                  >
                     Start Quiz
                   </button>
                 </div>
@@ -270,11 +297,24 @@ const Flashcards = () => {
       {topicToDelete && (
         <div className="modal-overlay">
           <div className="confirm-modal">
-            <h2>Are you sure?</h2>
-            <p>Do you really want to delete the topic <strong>{topicToDelete.label}</strong>? This action cannot be undone.</p>
-            <div className="confirm-modal-buttons">
-              <button className="cancel-button" onClick={() => setTopicToDelete(null)}>Cancel</button>
-              <button className="confirm-button" onClick={confirmDeleteTopic}>Delete</button>
+            <h2 className="text-xl font-bold text-red-600 mb-2">Are you sure?</h2>
+            <p className="text-gray-700 text-sm mb-5">
+              Do you really want to delete the topic <strong>{topicToDelete.label}</strong>?
+              <br />This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-4 py-2 border border-gray-300 text-gray-600 rounded-full hover:bg-gray-100"
+                onClick={() => setTopicToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                onClick={confirmDeleteTopic}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
