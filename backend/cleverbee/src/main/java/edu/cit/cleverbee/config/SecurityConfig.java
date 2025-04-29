@@ -34,9 +34,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/auth/**",        // ✅ Allow auth endpoints
-                    "/api/files/upload",   // ✅ Allow file upload endpoint
-                    "/uploads/**"          // ✅ Allow uploaded file access (IMPORTANT)
+                    "/api/auth/**",
+                    "/api/files/upload",
+                    "/uploads/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -51,7 +51,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "https://cleverbee-frontend.vercel.app"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

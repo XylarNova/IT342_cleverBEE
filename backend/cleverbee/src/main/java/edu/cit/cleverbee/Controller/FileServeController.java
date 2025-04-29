@@ -14,7 +14,10 @@ import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/uploads")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173", 
+    "https://cleverbee-frontend.vercel.app"
+})
 public class FileServeController {
 
     private final Path uploadDirectory = Paths.get("uploads");

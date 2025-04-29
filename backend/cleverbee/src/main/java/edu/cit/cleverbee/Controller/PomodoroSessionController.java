@@ -11,7 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pomodoro")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173", 
+    "https://cleverbee-frontend.vercel.app"
+})
 public class PomodoroSessionController {
 
     @Autowired
