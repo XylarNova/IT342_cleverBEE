@@ -11,7 +11,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/study-places")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173", 
+    "https://cleverbee-frontend.vercel.app"
+})
 public class StudyPlaceController {
 
     @Autowired
