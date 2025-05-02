@@ -77,7 +77,7 @@ const Quiz = () => {
 
         {topics.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <img src="/cute_bee.png" alt="Cute Bee" className="w-32 h-32 animate-bounce" />
+            <img src="/Cleverbee_bee.png" alt="Cute Bee" className="w-32 h-32 animate-bounce" />
             <h3 className="text-2xl font-bold text-yellow-600">Bzzz... No Topics Yet!</h3>
             <p className="text-gray-500">
               Fly to 🐝 <span className="font-semibold text-yellow-700">Flashcards</span> and create your first topic!
