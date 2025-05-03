@@ -135,7 +135,7 @@ const Files = () => {
   const handleRenameFile = async (id) => {
     if (renameValue.trim() === '') return;
     try {
-      await api.put(`/files/${id}/annotation?annotation=${renameValue}`);
+      await api.put(`/folders/${id}?newName=${encodeURIComponent(newName)}`);
       loadFiles(selectedFolder.id);
     } catch (error) {
       console.error("Failed to update annotation:", error);
