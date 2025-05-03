@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { FaPlus, FaSearch, FaFolderPlus, FaEllipsisV, FaStickyNote } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFolderPlus, FaEllipsisV } from 'react-icons/fa';
 import api from '../../api/api'; 
+
+
 
 const Files = () => {
   const fileInputRef = useRef(null);
@@ -14,9 +16,6 @@ const Files = () => {
   const [menuFileId, setMenuFileId] = useState(null);
   const [renameMode, setRenameMode] = useState(null);
   const [renameValue, setRenameValue] = useState("");
-  const [showAnnotationModal, setShowAnnotationModal] = useState(false);
-  const [pendingFile, setPendingFile] = useState(null);
-  const [annotationText, setAnnotationText] = useState("");
 
   useEffect(() => {
     loadFolders();
@@ -36,6 +35,7 @@ const Files = () => {
       console.error('Failed to load folders:', error);
     }
   };
+  
 
   const loadFiles = async (folderId) => {
     setFiles([]);
@@ -55,7 +55,7 @@ const Files = () => {
         folderName: newFolderName,
         folderImage: randomImage
       });
-
+  
       const createdFolder = {
         ...response.data,
         image: response.data.folderImage || randomImage
@@ -78,49 +78,48 @@ const Files = () => {
       alert('⚠️ Please select a folder first.');
       return;
     }
-
+  
     const uploadedFiles = Array.from(e.target.files);
-    const allowedExtensions = ['txt', 'pdf', 'doc', 'docx'];
-
+  
+    const allowedExtensions = ['txt', 'pdf', 'doc', 'docx']; // ✅ you can expand this if needed later
+  
     const invalidFiles = uploadedFiles.filter(file => {
       const ext = file.name.split('.').pop().toLowerCase();
       return !allowedExtensions.includes(ext);
     });
-
+  
     if (invalidFiles.length > 0) {
       alert('❌ Only .txt, .pdf, .doc, and .docx files are allowed!');
-      e.target.value = '';
-      return;
+      e.target.value = ''; // Clear file input
+      return; // Don't proceed to upload
     }
-
-    setPendingFile(uploadedFiles[0]);
-    setAnnotationText("");
-    setShowAnnotationModal(true);
-    e.target.value = '';
-  };
-
-  const handleUploadWithAnnotation = async () => {
-    if (!pendingFile || !selectedFolder) return;
-
-    const formData = new FormData();
-    formData.append("file", pendingFile);
-    formData.append("annotation", annotationText);
-    formData.append("folderId", selectedFolder.id);
-
-    try {
-      await api.post('/files/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      loadFiles(selectedFolder.id);
-    } catch (error) {
-      console.error("Failed to upload file:", error);
+  
+    // If passed validation, upload valid files
+    for (const file of uploadedFiles) {
+      const annotation = prompt(`Add a note for ${file.name} (optional):`) || "";
+  
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("annotation", annotation);
+      formData.append("folderId", selectedFolder.id);
+  
+      try {
+        await api.post('/files/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } catch (error) {
+        console.error('Failed to upload file:', error);
+      }
     }
-
-    setShowAnnotationModal(false);
-    setPendingFile(null);
+  
+    loadFiles(selectedFolder.id);
+    e.target.value = ''; // Clear input after uploading
   };
+  
+  
+
   const handleDeleteFile = async (id) => {
     if (window.confirm("Are you sure you want to delete this file?")) {
       try {
@@ -174,10 +173,10 @@ const Files = () => {
   const filteredFolders = folders.filter(folder =>
     folder.folderName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   return (
     <div className="flex min-h-screen">
       <Sidebar />
+
       <main className="flex-1 bg-yellow-50 p-8 space-y-8">
         {/* Top Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -204,7 +203,7 @@ const Files = () => {
           </div>
         </div>
 
-        {/* Folder Grid */}
+        {/* Folders Grid */}
         {filteredFolders.length === 0 ? (
           <div className="text-center text-gray-600 mt-20">
             <p className="text-xl">No folders yet 📂</p>
@@ -238,6 +237,7 @@ const Files = () => {
                   </button>
                 </div>
 
+                {/* Folder Menu (Rename/Delete) */}
                 {menuFileId === folder.id && (
                   <div className="absolute top-12 right-0 bg-white border border-yellow-400 rounded-lg shadow-lg p-2 z-50 space-y-2 animate-fade">
                     <button
@@ -264,12 +264,13 @@ const Files = () => {
             ))}
           </div>
         )}
+
         {/* Files inside selected folder */}
         {selectedFolder && (
           <>
             <div className="flex justify-between items-center mt-10">
               <h2 className="text-2xl font-bold text-yellow-600">
-                📄 Files in {selectedFolder.folderName}
+              📄 Files in {selectedFolder.folderName}
               </h2>
               <button
                 onClick={() => fileInputRef.current.click()}
@@ -285,129 +286,130 @@ const Files = () => {
                 onChange={handleFileUpload}
               />
             </div>
+ 
 
-            {files.length === 0 ? (
-              <div className="text-center text-gray-600 mt-10">
-                <p className="text-md">No files uploaded yet in this folder.</p>
-              </div>
-            ) : (
-              <div className="mt-6 space-y-2">
-                <div className="grid grid-cols-12 items-center px-4 py-2 font-bold text-yellow-700 bg-yellow-100 rounded-t-md">
-                  <div className="col-span-2">File</div>
-                  <div className="col-span-6">File Name</div>
-                  <div className="col-span-4">Annotation</div>
-                </div>
+{files.length === 0 ? (
+  <div className="text-center text-gray-600 mt-10">
+    <p className="text-md">No files uploaded yet in this folder.</p>
+  </div>
+) : (
+  <div className="mt-6 space-y-2">
+    {/* Table Header */}
+    <div className="grid grid-cols-12 items-center px-4 py-2 font-bold text-yellow-700 bg-yellow-100 rounded-t-md">
+      <div className="col-span-2">File</div>
+      <div className="col-span-6">File Name</div>
+      <div className="col-span-4">Annotation</div>
+    </div>
 
-                {files.map(file => (
-                  <div
-                    key={file.id}
-                    className="grid grid-cols-12 items-center bg-white px-4 py-3 border-b border-yellow-100 hover:bg-yellow-50 transition"
-                  >
-                    <div className="col-span-2 flex justify-center">
-                      <img
-                        src={`/FileIcon${Math.floor(Math.random() * 4) + 1}.png`}
-                        alt="File Icon"
-                        className="w-10 h-10"
-                      />
-                    </div>
+    {/* List of Files */}
+    {files.map(file => (
+      <div
+        key={file.id}
+        className="grid grid-cols-12 items-center bg-white px-4 py-3 border-b border-yellow-100 hover:bg-yellow-50 transition"
+      >
+        {/* Icon */}
+        <div className="col-span-2 flex justify-center">
+          <img
+            src={`/FileIcon${Math.floor(Math.random() * 4) + 1}.png`}
+            alt="File Icon"
+            className="w-10 h-10"
+          />
+        </div>
 
-                    <div className="col-span-6 text-gray-700 font-medium">
-                      <a
-                        href={`https://cleverbee-backend.onrender.com/uploads/${file.fileName}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        {file.fileName.length > 40 ? file.fileName.substring(0, 37) + '...' : file.fileName}
-                      </a>
-                    </div>
+       {/* File Name */}
+      <div className="col-span-6 text-gray-700 font-medium">
+        <a
+          href={`https://cleverbee-backend.onrender.com/uploads/${file.fileName}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:underline"
+        >
+          {file.fileName.length > 40 ? file.fileName.substring(0, 37) + '...' : file.fileName}
+        </a>
+      </div>
 
-                    <div className="col-span-4 flex items-center justify-between">
-                      {renameMode === file.id ? (
-                        <input
-                          type="text"
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onBlur={() => handleRenameFile(file.id)}
-                          className="border p-1 rounded w-3/4 text-sm"
-                          autoFocus
-                        />
-                      ) : (
-                        <span className="text-gray-500 italic text-sm">
-                          {file.annotation ? `"${file.annotation}"` : "No annotation"}
-                        </span>
-                      )}
 
-                      <div className="flex gap-2 ml-2">
-                        <button
-                          onClick={() => {
-                            setRenameMode(file.id);
-                            setRenameValue(file.annotation || "");
-                            setMenuFileId(null);
-                          }}
-                          className="text-yellow-500 hover:text-yellow-700 text-sm"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => handleDeleteFile(file.id)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* Annotation + Actions */}
+        <div className="col-span-4 flex items-center justify-between">
+          {renameMode === file.id ? (
+            <input
+              type="text"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onBlur={() => handleRenameFile(file.id)}
+              className="border p-1 rounded w-3/4 text-sm"
+              autoFocus
+            />
+          ) : (
+            <span className="text-gray-500 italic text-sm">
+              {file.annotation ? `"${file.annotation}"` : "No annotation"}
+            </span>
+          )}
+
+          <div className="flex gap-2 ml-2">
+            <button
+              onClick={() => {
+                setRenameMode(file.id);
+                setRenameValue(file.annotation || "");
+                setMenuFileId(null);
+              }}
+              className="text-yellow-500 hover:text-yellow-700 text-sm"
+            >
+              ✏️
+            </button>
+            <button
+              onClick={() => handleDeleteFile(file.id)}
+              className="text-red-500 hover:text-red-700 text-sm"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
           </>
         )}
 
-        {/* Annotation Modal */}
-        {showAnnotationModal && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-50">
-            <div className="bg-white border-4 border-yellow-400 rounded-xl p-6 w-full max-w-md space-y-4 relative shadow-lg">
+        {/* Create Folder Modal */}
+        {showCreateFolderModal && (
+          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+            <div className="relative bg-white p-6 rounded-2xl w-full max-w-md space-y-6 border-4 border-yellow-400 shadow-lg">
               <button
-                onClick={() => {
-                  setShowAnnotationModal(false);
-                  setPendingFile(null);
-                }}
+                onClick={() => setShowCreateFolderModal(false)}
                 className="absolute top-2 right-3 text-2xl text-gray-400 hover:text-gray-600"
               >
                 &times;
               </button>
 
-              <div className="flex items-center gap-3">
-                <FaStickyNote className="text-yellow-500 text-3xl" />
-                <h2 className="text-xl font-bold text-yellow-600">
-                  Add a note for <span className="text-black">{pendingFile?.name}</span>
-                </h2>
+              <div className="flex flex-col items-center">
+                <FaFolderPlus className="text-yellow-400 text-6xl mb-4" />
+                <h2 className="text-2xl font-bold text-yellow-600 mb-2">Create New Folder</h2>
+                <p className="text-gray-500 text-sm">Write the name of your folder:</p>
               </div>
 
-              <textarea
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
                 className="w-full border-2 border-yellow-300 p-2 rounded-md focus:ring-2 focus:ring-yellow-300"
-                placeholder="Type your annotation here..."
-                value={annotationText}
-                onChange={(e) => setAnnotationText(e.target.value)}
-                rows={4}
+                placeholder="Folder name..."
               />
 
               <div className="flex justify-end gap-4">
                 <button
-                  onClick={() => {
-                    setShowAnnotationModal(false);
-                    setPendingFile(null);
-                  }}
+                  onClick={() => setShowCreateFolderModal(false)}
                   className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleUploadWithAnnotation}
+                  onClick={handleCreateFolder}
                   className="px-4 py-2 rounded-md bg-yellow-400 hover:bg-yellow-500 text-white"
                 >
-                  Upload
+                  Save
                 </button>
               </div>
             </div>
