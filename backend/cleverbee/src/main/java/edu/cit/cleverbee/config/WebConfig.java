@@ -18,7 +18,7 @@ public class WebConfig {
                             "http://localhost:5173", 
                             "https://cleverbee-frontend.vercel.app"
                         ) // ✅ Allow both Localhost and Vercel Frontend
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
                         .allowedHeaders("*")
                         .allowCredentials(true);
             }
