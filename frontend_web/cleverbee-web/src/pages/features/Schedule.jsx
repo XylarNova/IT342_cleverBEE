@@ -270,15 +270,18 @@ const Schedule = () => {
             <h1 className="text-4xl font-bold text-yellow-600">📅 Calendar</h1>
             <p className="text-gray-600 mt-3 text-base">Your study plan for the week</p>
           </div>
-          <button
-            onClick={() => {
-              resetForm();
-              setShowAddModal(true);
-            }}
-            className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-5 py-2 rounded-lg shadow-md"
-          >
-            + Add Schedule
-          </button>
+             <div className="absolute right-[95px] top-[195px] z-30">
+                <button
+                  onClick={() => {
+                    resetForm();
+                    setShowAddModal(true);
+                  }}
+                  className="bg-pink-400 hover:bg-pink-500 text-white text-2xl font-bold px-4 py-2 rounded-full shadow-lg transition transform hover:scale-110 animate-pulse"
+                  title="Add New Schedule"
+                >
+                  +
+                </button>
+             </div>
         </div>
 
         {/* Main Content */}
