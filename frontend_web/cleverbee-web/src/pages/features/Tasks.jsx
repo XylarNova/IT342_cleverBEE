@@ -3,7 +3,7 @@ import { FiTrash2, FiEdit } from 'react-icons/fi';
 import Sidebar from './Sidebar';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import api from "../../api/api"; // Ensure correct API import path
+import api from "../../api/api";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -12,10 +12,9 @@ const Tasks = () => {
     description: '',
     priority: 'moderate',
     startDate: null,
-    endDate: null
+    endDate: null,
   });
   const [editingTaskId, setEditingTaskId] = useState(null);
-  const [checkedTasks, setCheckedTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -29,11 +28,10 @@ const Tasks = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Ensure the response data is an array and in the expected format
       if (Array.isArray(response.data.data)) {
         setTasks(response.data.data);
       } else {
-        console.error("Tasks data is not in expected array format");
+        console.error("Tasks data is not in expected format");
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -50,12 +48,10 @@ const Tasks = () => {
 
     try {
       if (editingTaskId) {
-        // Update existing task
         await api.put(`/tasks/${editingTaskId}`, taskData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        // Create new task
         await api.post('/tasks', taskData, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -63,16 +59,10 @@ const Tasks = () => {
       setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
       setEditingTaskId(null);
       setShowForm(false);
-      fetchTasks(); // Re-fetch tasks after adding/updating
+      fetchTasks();
     } catch (error) {
       console.error("Error adding/updating task:", error);
     }
-  };
-
-  const cancelForm = () => {
-    setShowForm(false);
-    setEditingTaskId(null);
-    setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
   };
 
   const deleteTask = async (id) => {
@@ -81,20 +71,21 @@ const Tasks = () => {
       await api.delete(`/tasks/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchTasks(); // Re-fetch tasks after deletion
+      fetchTasks();
     } catch (error) {
       console.error("Error deleting task:", error);
     }
   };
+  const toggleComplete = async (id) => {
+    const task = tasks.find(t => t.id === id);
+    const newCompletedValue = !task.completed;
 
-  const priorities = [
-    { key: 'high', title: '🐝 Super Important', color: 'bg-red-200' },
-    { key: 'moderate', title: '🧸 Kind of Important', color: 'bg-yellow-200' },
-    { key: 'low', title: '💤 Not Important', color: 'bg-blue-100' },
-  ];
-
-  const toggleComplete = (id) => {
-    setCheckedTasks(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
+    try {
+      await api.patch(`/tasks/${id}/toggle-completed?completed=${newCompletedValue}`);
+      fetchTasks();
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+    }
   };
 
   const handleEdit = (task) => {
@@ -109,7 +100,21 @@ const Tasks = () => {
     setShowForm(true);
   };
 
-  const progressPercent = tasks.length ? Math.round((checkedTasks.length / tasks.length) * 100) : 0;
+  const cancelForm = () => {
+    setShowForm(false);
+    setEditingTaskId(null);
+    setNewTask({ label: '', description: '', priority: 'moderate', startDate: null, endDate: null });
+  };
+
+  const priorities = [
+    { key: 'high', title: '🐝 Super Important', color: 'bg-red-200' },
+    { key: 'moderate', title: '🧸 Kind of Important', color: 'bg-yellow-200' },
+    { key: 'low', title: '💤 Not Important', color: 'bg-blue-100' },
+  ];
+
+  const progressPercent = tasks.length
+    ? Math.round(tasks.filter(t => t.completed).length / tasks.length * 100)
+    : 0;
 
   return (
     <div className="flex min-h-screen bg-yellow-50">
@@ -122,10 +127,7 @@ const Tasks = () => {
           <div className="flex-1">
             <p className="text-lg font-semibold text-gray-700">You're doing great!</p>
             <div className="w-full bg-gray-200 h-3 rounded">
-              <div
-                className="h-3 bg-yellow-400 rounded"
-                style={{ width: `${progressPercent}%` }}
-              ></div>
+              <div className="h-3 bg-yellow-400 rounded" style={{ width: `${progressPercent}%` }}></div>
             </div>
             <p className="text-sm text-gray-600 mt-1">{progressPercent}% completed</p>
           </div>
@@ -208,12 +210,12 @@ const Tasks = () => {
                 .map((task) => (
                   <div
                     key={task.id}
-                    className={`relative p-4 mb-3 rounded shadow bg-white ${checkedTasks.includes(task.id) ? 'opacity-50' : ''}`}
+                    className={`relative p-4 mb-3 rounded shadow bg-white ${task.completed ? 'opacity-50' : ''}`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <input
                         type="checkbox"
-                        checked={checkedTasks.includes(task.id)}
+                        checked={task.completed}
                         onChange={() => toggleComplete(task.id)}
                         className="mt-1"
                       />
