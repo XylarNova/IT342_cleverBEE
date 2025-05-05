@@ -264,28 +264,25 @@ const Schedule = () => {
       <Sidebar />
 
       <main className="flex-1 bg-gradient-to-br from-yellow-50 to-white flex flex-col p-6 min-h-0 overflow-auto">
-       {/* + Button above the "Sun" column of the weekly calendar */}
-        <div className="absolute top-[178px] right-[42px] z-50">
-          <button
-            onClick={() => {
-              resetForm();
-              setShowAddModal(true);
-            }}
-            className="bg-pink-400 hover:bg-pink-500 text-white text-2xl font-bold w-10 h-10 rounded-full shadow-lg animate-pulse hover:scale-110 transition-transform"
-            title="Add Schedule"
-          >
-            +
-          </button>
-      </div>
-
-       
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-4xl font-bold text-yellow-600">📅 Calendar</h1>
             <p className="text-gray-600 mt-3 text-base">Your study plan for the week</p>
           </div>
-      
+                  <div className="absolute right-[340px] top-[120px] z-30">
+          <button
+            onClick={() => {
+              resetForm();
+              setShowAddModal(true);
+            }}
+            className="bg-pink-400 hover:bg-pink-500 text-white text-xl font-bold px-4 py-2 rounded-full shadow-lg"
+            title="Add Schedule"
+          >
+            ➕
+          </button>
+        </div>
+
         </div>
 
         {/* Main Content */}
