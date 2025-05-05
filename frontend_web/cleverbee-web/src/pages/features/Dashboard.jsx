@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/api"; // Go up two directories to access 'api.js'
+import api from "../../api/api";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const Dashboard = () => {
   const [schedules, setSchedules] = useState([]);
 
   useEffect(() => {
-    const fetchUserAndData = async () => {
+    const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -19,42 +19,47 @@ const Dashboard = () => {
           return;
         }
 
-        const userRes = await api.get("/user/me");
-        setUser(userRes.data);
-
-        const taskRes = await api.get("/tasks");
-        setTasks(taskRes.data.data.slice(0, 3));
-
-        const scheduleRes = await api.get("/schedules");
-        const formattedSchedules = scheduleRes.data
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-          .slice(0, 3)
-          .map((sched) => ({
-            id: sched.id,
-            subject: sched.subject,
-            day: new Date(sched.date).toLocaleDateString("en-US", { weekday: "long" }),
-            time: `${sched.startTime} - ${sched.endTime}`,
-          }));
-        setSchedules(formattedSchedules);
+        const response = await api.get("/user/me");
+        setUser(response.data);
       } catch (error) {
-        console.error("Error fetching dashboard data", error);
+        console.error("Unauthorized or error fetching user", error);
         navigate("/login");
       }
     };
 
-    fetchUserAndData();
+    const fetchSchedules = async () => {
+      try {
+        const response = await api.get("/schedules");
+        setSchedules(response.data.slice(0, 3));
+      } catch (error) {
+        console.error("Error fetching schedules", error);
+      }
+    };
+
+    const fetchTasks = async () => {
+      try {
+        const response = await api.get("/tasks");
+        setTasks(response.data.data.slice(0, 3));
+      } catch (error) {
+        console.error("Error fetching tasks", error);
+      }
+    };
+
+    fetchUser();
+    fetchSchedules();
+    fetchTasks();
   }, [navigate]);
 
-  const handleToggleComplete = async (taskId, currentStatus) => {
+  const toggleComplete = async (taskId, isCompleted) => {
     try {
-      await api.patch(`/tasks/${taskId}/toggle-completed?completed=${!currentStatus}`);
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === taskId ? { ...task, completed: !currentStatus } : task
+      await api.patch(`/tasks/${taskId}/toggle-completed?completed=${!isCompleted}`);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === taskId ? { ...t, completed: !isCompleted } : t
         )
       );
-    } catch (err) {
-      console.error("Error toggling task completion:", err);
+    } catch (error) {
+      console.error("Failed to toggle task completion", error);
     }
   };
 
@@ -70,7 +75,7 @@ const Dashboard = () => {
           <div className="space-y-8">
             <section className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-200 flex items-center gap-4">
               <img
-                src={user.profilePic || "/avatar1.png"}
+                src={user.profilePic || '/avatar1.png'}
                 alt="User Avatar"
                 className="w-20 h-20 rounded-full border-4 border-yellow-300 shadow-lg hover:scale-105 transition object-cover"
               />
@@ -85,29 +90,27 @@ const Dashboard = () => {
               </div>
             </section>
 
-            <CalendarCard />
+            <CalendarCard schedules={schedules} />
           </div>
 
           {/* RIGHT COLUMN */}
           <div className="space-y-8">
             <section className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-200">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold">📝 My Tasks</h2>
-              </div>
+              <h2 className="text-lg font-bold mb-4">📋 My Tasks</h2>
               {tasks.length === 0 ? (
                 <p className="text-sm text-gray-500">No tasks yet.</p>
               ) : (
                 tasks.map((task) => (
-                  <div key={task.id} className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className={`font-medium ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.label}</p>
-                      <p className="text-sm text-gray-500">{task.description}</p>
+                  <div key={task.id} className="flex items-center justify-between py-2">
+                    <div className={task.completed ? "line-through text-gray-400" : ""}>
+                      <p className="font-medium text-sm">{task.label}</p>
+                      <p className="text-xs text-gray-500">{task.description}</p>
                     </div>
                     <input
                       type="checkbox"
                       checked={task.completed}
-                      onChange={() => handleToggleComplete(task.id, task.completed)}
-                      className="accent-yellow-500 w-5 h-5"
+                      onChange={() => toggleComplete(task.id, task.completed)}
+                      className="form-checkbox w-5 h-5 text-yellow-500"
                     />
                   </div>
                 ))
@@ -115,9 +118,7 @@ const Dashboard = () => {
             </section>
 
             <section className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-200">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold">📅 Upcoming Classes</h2>
-              </div>
+              <h2 className="text-lg font-bold mb-4">📅 Upcoming Classes</h2>
               {schedules.length === 0 ? (
                 <p className="text-sm text-gray-500">No schedules available.</p>
               ) : (
@@ -125,7 +126,7 @@ const Dashboard = () => {
                   <div key={schedule.id} className="mb-3">
                     <div className="text-md font-medium">{schedule.subject}</div>
                     <div className="text-sm text-gray-600">
-                      {schedule.day} — {schedule.time}
+                      {new Date(schedule.date).toLocaleDateString("en-US", { weekday: 'long' })} — {schedule.startTime} - {schedule.endTime}
                     </div>
                   </div>
                 ))
@@ -138,7 +139,7 @@ const Dashboard = () => {
   );
 };
 
-const CalendarCard = () => {
+const CalendarCard = ({ schedules }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
   const year = currentDate.getFullYear();
@@ -151,6 +152,26 @@ const CalendarCard = () => {
   const dates = Array.from({ length: startDay }, () => null).concat(
     Array.from({ length: daysInMonth }, (_, i) => i + 1)
   );
+
+  const getClassTypeColor = (type) => {
+    switch (type) {
+      case "EVENT": return "bg-pink-400";
+      case "FACE_TO_FACE": return "bg-purple-400";
+      case "HYBRID": return "bg-green-400";
+      case "ONLINE": return "bg-blue-400";
+      default: return "bg-gray-400";
+    }
+  };
+
+  const scheduleMap = {};
+  schedules.forEach(event => {
+    const d = new Date(event.date);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const day = d.getDate();
+      if (!scheduleMap[day]) scheduleMap[day] = [];
+      scheduleMap[day].push(event.classType);
+    }
+  });
 
   return (
     <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-200">
@@ -182,21 +203,32 @@ const CalendarCard = () => {
             date === today.getDate() &&
             month === today.getMonth() &&
             year === today.getFullYear();
+
           return (
-            <div
-              key={i}
-              className={`py-2 rounded-md ${
-                date ? "hover:bg-yellow-100" : ""
-              } ${
-                isToday
-                  ? "bg-yellow-300 ring-2 ring-yellow-500 font-bold text-white"
-                  : "text-gray-700"
-              }`}
-            >
-              {date || ""}
+            <div key={i} className="flex flex-col items-center justify-center">
+              <div
+                className={`w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200
+                  ${isToday ? "bg-yellow-300 ring-2 ring-yellow-500 font-bold text-white" : "hover:bg-yellow-100 text-gray-700"}`}
+              >
+                {date || ""}
+              </div>
+              <div className="flex gap-0.5 mt-0.5">
+                {(scheduleMap[date] || []).map((type, idx) => (
+                  <span
+                    key={idx}
+                    className={`w-2 h-2 rounded-full ${getClassTypeColor(type)}`}
+                    title={type}
+                  />
+                ))}
+              </div>
             </div>
           );
         })}
+      </div>
+
+      <div className="flex gap-4 mt-4 text-xs text-gray-600">
+        <div className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-400 rounded-full"></span> Class</div>
+        <div className="flex items-center gap-1"><span className="w-3 h-3 bg-pink-400 rounded-full"></span> Event</div>
       </div>
     </section>
   );
