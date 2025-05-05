@@ -263,7 +263,7 @@ const Schedule = () => {
     <div className="flex min-h-screen bg-yellow-50 text-gray-900">
       <Sidebar />
 
-      <main className="flex-1 bg-gradient-to-br from-yellow-50 to-white flex flex-col p-6 min-h-0 overflow-auto">
+      <main className="flex-1 bg-gradient-to-br from-yellow-50 to-white flex flex-col p-6 min-h-0 overflow-auto relative">     
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
