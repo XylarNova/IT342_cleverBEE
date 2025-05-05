@@ -3,8 +3,6 @@ import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api"; // Go up two directories to access 'api.js'
 
-
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({ username: "Guest" });
@@ -12,7 +10,7 @@ const Dashboard = () => {
   const [schedules, setSchedules] = useState([]);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -21,23 +19,44 @@ const Dashboard = () => {
           return;
         }
 
-        // ✅ Automatically uses token via api.js
-        const response = await api.get("/user/me");
-        setUser(response.data); 
+        const userRes = await api.get("/user/me");
+        setUser(userRes.data);
+
+        const taskRes = await api.get("/tasks");
+        setTasks(taskRes.data.data.slice(0, 3));
+
+        const scheduleRes = await api.get("/schedules");
+        const formattedSchedules = scheduleRes.data
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .slice(0, 3)
+          .map((sched) => ({
+            id: sched.id,
+            subject: sched.subject,
+            day: new Date(sched.date).toLocaleDateString("en-US", { weekday: "long" }),
+            time: `${sched.startTime} - ${sched.endTime}`,
+          }));
+        setSchedules(formattedSchedules);
       } catch (error) {
-        console.error("Unauthorized or error fetching user", error);
+        console.error("Error fetching dashboard data", error);
         navigate("/login");
       }
     };
 
-    fetchUser();
-
-    const storedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    const storedSchedules = JSON.parse(localStorage.getItem("schedules")) || [];
-
-    setTasks(storedTasks.slice(0, 3));
-    setSchedules(storedSchedules.slice(0, 3));
+    fetchUserAndData();
   }, [navigate]);
+
+  const handleToggleComplete = async (taskId, currentStatus) => {
+    try {
+      await api.patch(`/tasks/${taskId}/toggle-completed?completed=${!currentStatus}`);
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId ? { ...task, completed: !currentStatus } : task
+        )
+      );
+    } catch (err) {
+      console.error("Error toggling task completion:", err);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-yellow-50 text-gray-900">
@@ -46,12 +65,12 @@ const Dashboard = () => {
       <main className="flex-1 p-6 lg:p-10 overflow-y-auto">
         <h1 className="text-4xl font-bold text-yellow-600">Dashboard</h1>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-6">
           {/* LEFT COLUMN */}
           <div className="space-y-8">
             <section className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-200 flex items-center gap-4">
               <img
-                src={user.profilePic || '/avatar1.png'}
+                src={user.profilePic || "/avatar1.png"}
                 alt="User Avatar"
                 className="w-20 h-20 rounded-full border-4 border-yellow-300 shadow-lg hover:scale-105 transition object-cover"
               />
@@ -79,23 +98,17 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500">No tasks yet.</p>
               ) : (
                 tasks.map((task) => (
-                  <div key={task.id} className="mb-4">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-medium">{task.label}</span>
-                      <span className="text-gray-500">{task.progress}%</span>
+                  <div key={task.id} className="mb-4 flex items-center justify-between">
+                    <div>
+                      <p className={`font-medium ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.label}</p>
+                      <p className="text-sm text-gray-500">{task.description}</p>
                     </div>
-                    <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          task.priority === "high"
-                            ? "bg-red-500"
-                            : task.priority === "medium"
-                            ? "bg-blue-400"
-                            : "bg-green-400"
-                        }`}
-                        style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => handleToggleComplete(task.id, task.completed)}
+                      className="accent-yellow-500 w-5 h-5"
+                    />
                   </div>
                 ))
               )}
