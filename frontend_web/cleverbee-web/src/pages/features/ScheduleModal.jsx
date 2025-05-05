@@ -105,7 +105,7 @@ const ScheduleModal = ({ formData, setFormData, onSave, onCancel, error }) => {
             disabled={!formData.recurring}
             onChange={(e) => setFormData({ ...formData, recurringDay: e.target.value })}
           >
-            <option value="">Recurring Day (Optional)</option>
+            <option value="">Day of Repetition (Optional)</option>
             {days.map((day) => (
               <option key={day} value={day}>
                 {day}
