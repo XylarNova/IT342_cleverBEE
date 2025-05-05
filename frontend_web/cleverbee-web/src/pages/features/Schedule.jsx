@@ -270,7 +270,7 @@ const Schedule = () => {
             <h1 className="text-4xl font-bold text-yellow-600">📅 Calendar</h1>
             <p className="text-gray-600 mt-3 text-base">Your study plan for the week</p>
           </div>
-          <div className="absolute right-[355px] top-[95px] z-30">
+          <div className="absolute right-[355px] top-[110px] z-30">
               <button
                 onClick={() => {
                   resetForm();
@@ -279,7 +279,7 @@ const Schedule = () => {
                 className="bg-yellow-400 hover:bg-yellow-500 text-white text-xl font-bold px-4 py-2 rounded-full shadow-lg"
                 title="Add Schedule"
               >
-                ➕
+                +
               </button>
           </div>
 
