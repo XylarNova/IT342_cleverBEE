@@ -1,32 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../Sidebar';
 import { useNavigate } from 'react-router-dom';
-import api from '../../../api/api'; // ✅ use your deployed backend connector
+import api from '../../../api/api';
 
 const StudyTools = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({ name: 'Guest', profilePic: '/default-avatar.png' });
-  const [studyHours, setStudyHours] = useState(0);
-  const [userPreferences, setUserPreferences] = useState({
-    learningStyle: 'visual', // Options: visual, auditory, kinesthetic
-  });
+  const [sessionCount, setSessionCount] = useState(0);
+  const [streak, setStreak] = useState(1);
+  const [quote, setQuote] = useState('');
 
-  const maxHours = 100;
+  const maxSessions = 100;
+
+  const motivationalQuotes = [
+    "Success doesn't come from what you do occasionally, it comes from what you do consistently.",
+    "Stay focused and never give up on your dreams.",
+    "Small progress is still progress. Keep buzzing!",
+    "Your only limit is your mind. Break the hive walls!",
+    "Push yourself because no one else is going to do it for you.",
+    "It always seems impossible until it's done. Then it's honey-sweet victory!",
+    "Don't wish for it, work for it — one flap at a time.",
+    "You are capable of more than you know. Believe and bee-lieve!",
+    "A busy bee is a productive bee. Keep flying forward!",
+    "Even the smallest bee makes a difference in the hive.",
+    "Great things come from daily buzzing effort.",
+    "Buzz through obstacles — wings were made to flap!",
+    "Turn your focus into nectar. Hard work pays off!",
+    "No flower blooms overnight. Keep pollinating your goals.",
+    "Bees don’t wait for perfect weather. They fly anyway.",
+    "You’re not just studying — you’re becoming unstoppable!"
+  ];
 
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.warn('No token found, redirecting to login.');
         navigate('/login');
         return;
       }
 
       try {
         const response = await api.get('/user/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = response.data;
@@ -40,26 +55,48 @@ const StudyTools = () => {
       }
     };
 
+    // Initialize quote
+    setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
+
+    // Track session count (can increase on tool use)
+    const savedCount = parseInt(localStorage.getItem('studySessions')) || 0;
+    setSessionCount(savedCount);
+
+    // Daily streak tracking
+    const today = new Date().toDateString();
+    const lastLogin = localStorage.getItem('lastLoginDate');
+    let savedStreak = parseInt(localStorage.getItem('loginStreak')) || 1;
+
+    if (lastLogin !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (new Date(lastLogin).toDateString() === yesterday.toDateString()) {
+        savedStreak += 1;
+      } else {
+        savedStreak = 1;
+      }
+      localStorage.setItem('lastLoginDate', today);
+      localStorage.setItem('loginStreak', savedStreak.toString());
+    }
+
+    setStreak(savedStreak);
     fetchUser();
-
-    const fetchStudyData = async () => {
-      // If you have study hours tracking in backend, fetch it here.
-      // For now, still using dummy/fake data.
-      const fetchedHours = 62;
-      setStudyHours(fetchedHours);
-    };
-
-    fetchStudyData();
   }, [navigate]);
 
-  const progress = Math.min((studyHours / maxHours) * 100, 100);
+  const progress = Math.min((sessionCount / maxSessions) * 100, 100);
+
+  const getRank = () => {
+    if (sessionCount >= 75) return "🐝 Elite Bee";
+    if (sessionCount >= 50) return "🧠 Smart Bee";
+    if (sessionCount >= 25) return "📚 Active Bee";
+    return "🌱 New Bee";
+  };
 
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-
       <main className="flex-1 bg-gradient-to-br from-yellow-50 to-white p-6 md:p-10 space-y-12">
-        {/* Header Section */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-4xl font-bold text-yellow-600">Study Tools</h1>
@@ -80,7 +117,13 @@ const StudyTools = () => {
           </div>
         </div>
 
-        {/* Study Tracker */}
+        {/* Motivation Widget */}
+        <section className="bg-white rounded-3xl shadow-xl p-6">
+          <h2 className="text-xl font-bold text-yellow-600 mb-2">💬 Motivation of the Day</h2>
+          <p className="italic text-gray-700">"{quote}"</p>
+        </section>
+
+        {/* Streak & Progress */}
         <section className="bg-white rounded-3xl shadow-xl p-8 flex flex-col md:flex-row items-center gap-10">
           <img
             src="/mainBee.png"
@@ -88,9 +131,15 @@ const StudyTools = () => {
             className="w-32 h-32 md:w-40 md:h-40 object-contain animate-bounce-slow"
           />
           <div className="flex-1 space-y-2 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-yellow-600">Your Weekly Progress</h2>
+            <h2 className="text-2xl font-bold text-yellow-600">📈 Study Progress</h2>
             <p className="text-gray-700 text-lg">
-              You’ve studied for <span className="font-semibold">{studyHours} hours</span> this week.
+              🎯 Sessions Completed: <span className="font-semibold">{sessionCount}</span>
+            </p>
+            <p className="text-gray-700 text-lg">
+              🔥 Daily Streak: <span className="font-semibold">{streak} day{streak !== 1 ? 's' : ''}</span>
+            </p>
+            <p className="text-gray-700 text-lg">
+              🏅 Rank: <span className="font-semibold">{getRank()}</span>
             </p>
             <div className="w-full h-5 bg-gray-200 rounded-full overflow-hidden shadow-inner">
               <div
@@ -99,12 +148,12 @@ const StudyTools = () => {
               />
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              {Math.round(progress)}% of your 100-hr goal
+              {Math.round(progress)}% toward your 100-session milestone
             </p>
           </div>
         </section>
 
-        {/* Tools Section */}
+        {/* Tool Cards */}
         <section>
           <h2 className="text-2xl font-bold text-yellow-600 mb-4">🛠️ Choose a Study Tool</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -115,7 +164,12 @@ const StudyTools = () => {
             ].map((tool) => (
               <div
                 key={tool.label}
-                onClick={() => navigate(tool.route)}
+                onClick={() => {
+                  const newCount = sessionCount + 1;
+                  localStorage.setItem('studySessions', newCount.toString());
+                  setSessionCount(newCount);
+                  navigate(tool.route);
+                }}
                 className={`rounded-3xl p-6 shadow-md hover:shadow-xl bg-gradient-to-br ${tool.color} flex flex-col items-center transition-transform transform hover:scale-105 cursor-pointer`}
               >
                 <img
@@ -128,7 +182,6 @@ const StudyTools = () => {
             ))}
           </div>
         </section>
-
       </main>
     </div>
   );
