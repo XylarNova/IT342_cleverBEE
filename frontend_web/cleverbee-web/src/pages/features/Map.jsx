@@ -81,7 +81,7 @@ const Maps = () => {
     navigator.geolocation.getCurrentPosition(
       (position) =>
         setUserLocation([position.coords.latitude, position.coords.longitude]),
-      () => setUserLocation([14.584, 121.175])
+      () => setUserLocation([10.294880475435006, 123.88938502423706])
     );
   }, []);
 
