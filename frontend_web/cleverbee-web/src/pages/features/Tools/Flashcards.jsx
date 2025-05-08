@@ -3,7 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaPlusCircle, FaTrash } from 'react-icons/fa';
-import { getFlashcards, createFlashcards, deleteFlashcardsByCategory, updateFlashcard, deleteFlashcard } from '../../../api/flashcardApi';
+import {
+  getFlashcards,
+  createFlashcards,
+  deleteFlashcardsByCategory,
+  updateFlashcard,
+  deleteFlashcard
+} from '../../../api/flashcardApi';
 
 const Flashcards = () => {
   const navigate = useNavigate();
@@ -47,12 +53,6 @@ const Flashcards = () => {
     setFlashcards([...flashcards, { question: '', answer: '' }]);
   };
 
-  const handleChangeFlashcard = (index, field, value) => {
-    const updated = [...flashcards];
-    updated[index][field] = value;
-    setFlashcards(updated);
-  };
-
   const handleAddTopic = async () => {
     if (topicName && flashcards[0].question && flashcards[0].answer) {
       try {
@@ -79,12 +79,21 @@ const Flashcards = () => {
   const handleSaveEdit = async () => {
     try {
       for (const card of editFlashcards) {
-        await updateFlashcard(card.id, {
-          question: card.question,
-          answer: card.answer,
-          category: editTopicName,
-          tags: [],
-        });
+        if (card.id) {
+          await updateFlashcard(card.id, {
+            question: card.question,
+            answer: card.answer,
+            category: editTopicName,
+            tags: [],
+          });
+        } else if (card.question && card.answer) {
+          await createFlashcards([{
+            question: card.question,
+            answer: card.answer,
+            category: editTopicName,
+            tags: [],
+          }]);
+        }
       }
       showSuccess('Flashcards updated successfully!');
       fetchFlashcardsData();
@@ -111,6 +120,7 @@ const Flashcards = () => {
     }
     setTopicToDelete(null);
   };
+
   const showSuccess = (message) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(''), 3000);
@@ -126,33 +136,26 @@ const Flashcards = () => {
 
   return (
     <div className="min-h-screen bg-yellow-50 px-4 py-8 flex flex-col items-center relative">
-
-      {/* HEADER and BUTTONS */}
+      {/* Header */}
       <div className="w-full max-w-6xl flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <button
-          onClick={() => navigate('/tools')}
-          className="flex items-center gap-2 bg-white text-yellow-600 font-semibold px-5 py-2 rounded-full border border-yellow-300 shadow hover:scale-105 transition"
-        >
+        <button onClick={() => navigate('/tools')} className="flex items-center gap-2 bg-white text-yellow-600 font-semibold px-5 py-2 rounded-full border border-yellow-300 shadow hover:scale-105 transition">
           <FaArrowLeft /> Back to Study Tools
         </button>
-        <button
-          onClick={() => { setShowForm(true); setEditingTopic(null); }}
-          className="add-button flex items-center gap-2"
-        >
+        <button onClick={() => { setShowForm(true); setEditingTopic(null); }} className="add-button flex items-center gap-2">
           <FaPlusCircle className="text-lg" /> Create Flashcards
         </button>
       </div>
 
-      {/* FORM Modal (CREATE or EDIT Flashcards) */}
+      {/* Modal Form */}
       {showForm && (
         <div className="modal-overlay">
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               if (editingTopic) {
-                handleSaveEdit();
+                await handleSaveEdit();
               } else {
-                handleAddTopic();
+                await handleAddTopic();
               }
             }}
             className="modal-box space-y-4 max-h-[90vh] overflow-y-auto"
@@ -162,7 +165,6 @@ const Flashcards = () => {
               {editingTopic ? 'Edit Flashcards' : 'Create Flashcards'}
             </h3>
 
-            {/* Topic Name */}
             <div className="flex flex-col gap-2">
               <label className="text-sm text-gray-600 font-medium">Topic Name</label>
               <input
@@ -174,7 +176,6 @@ const Flashcards = () => {
               />
             </div>
 
-            {/* Flashcards */}
             {(editingTopic ? editFlashcards : flashcards).map((card, index) => (
               <div key={index} className="flex flex-col gap-2 border border-yellow-100 p-3 rounded-md bg-yellow-50 mb-2">
                 <label className="text-sm font-medium text-gray-600">Flashcard {index + 1}</label>
@@ -183,7 +184,7 @@ const Flashcards = () => {
                   placeholder="Question"
                   value={card.question}
                   onChange={(e) => {
-                    const updated = editingTopic ? [...editFlashcards] : [...flashcards];
+                    const updated = [...(editingTopic ? editFlashcards : flashcards)];
                     updated[index].question = e.target.value;
                     editingTopic ? setEditFlashcards(updated) : setFlashcards(updated);
                   }}
@@ -194,7 +195,7 @@ const Flashcards = () => {
                   placeholder="Answer"
                   value={card.answer}
                   onChange={(e) => {
-                    const updated = editingTopic ? [...editFlashcards] : [...flashcards];
+                    const updated = [...(editingTopic ? editFlashcards : flashcards)];
                     updated[index].answer = e.target.value;
                     editingTopic ? setEditFlashcards(updated) : setFlashcards(updated);
                   }}
@@ -203,36 +204,26 @@ const Flashcards = () => {
               </div>
             ))}
 
-            {/* Add Another Flashcard */}
-            {!editingTopic && (
-              <button
-                type="button"
-                onClick={handleAddFlashcard}
-                className="text-sm text-yellow-700 hover:underline"
-              >
-                + Add another flashcard
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => editingTopic ? setEditFlashcards([...editFlashcards, { question: '', answer: '', id: null }]) : handleAddFlashcard()}
+              className="text-sm text-yellow-700 hover:underline"
+            >
+              + Add another flashcard
+            </button>
 
-            {/* Form Buttons */}
             <div className="flex justify-end gap-2 pt-4">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="text-sm px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 transition"
-              >
+              <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 transition">
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="bg-yellow-400 hover:bg-yellow-500 text-white text-sm px-4 py-2 rounded-full font-semibold transition shadow"
-              >
+              <button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-white text-sm px-4 py-2 rounded-full font-semibold transition shadow">
                 Save
               </button>
             </div>
           </form>
         </div>
       )}
+
       {/* Topics List */}
       <div className="bg-white w-full max-w-6xl rounded-3xl shadow-lg p-6 md:p-10 space-y-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -251,39 +242,25 @@ const Flashcards = () => {
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-xl font-bold text-yellow-800">{topic.label}</span>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingTopic(topic);
-                        setEditTopicName(topic.label);
-                        setEditFlashcards(topic.flashcards);
-                        setShowForm(true);
-                      }}
-                      className="text-blue-500 hover:text-blue-700"
-                      title="Edit"
-                    >
+                    <button onClick={() => {
+                      setEditingTopic(topic);
+                      setEditTopicName(topic.label);
+                      setEditFlashcards(topic.flashcards);
+                      setShowForm(true);
+                    }} className="text-blue-500 hover:text-blue-700" title="Edit">
                       ✏️
                     </button>
-                    <button
-                      onClick={() => setTopicToDelete(topic)}
-                      className="text-red-500 hover:text-red-600"
-                      title="Delete"
-                    >
+                    <button onClick={() => setTopicToDelete(topic)} className="text-red-500 hover:text-red-600" title="Delete">
                       <FaTrash />
                     </button>
                   </div>
                 </div>
                 <span className="text-sm font-medium text-yellow-700 mb-4">{topic.flashcards.length} cards</span>
                 <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => handleStudyTopic(topic)}
-                    className="bg-yellow-400 text-white font-semibold px-4 py-2 rounded-full hover:bg-yellow-500"
-                  >
+                  <button onClick={() => handleStudyTopic(topic)} className="bg-yellow-400 text-white font-semibold px-4 py-2 rounded-full hover:bg-yellow-500">
                     Study
                   </button>
-                  <button
-                    onClick={() => handleStartQuiz(topic)}
-                    className="bg-white text-yellow-600 font-semibold px-4 py-2 rounded-full border border-yellow-400 hover:bg-yellow-50"
-                  >
+                  <button onClick={() => handleStartQuiz(topic)} className="bg-white text-yellow-600 font-semibold px-4 py-2 rounded-full border border-yellow-400 hover:bg-yellow-50">
                     Start Quiz
                   </button>
                 </div>
@@ -299,22 +276,11 @@ const Flashcards = () => {
           <div className="confirm-modal">
             <h2 className="text-xl font-bold text-red-600 mb-2">Are you sure?</h2>
             <p className="text-gray-700 text-sm mb-5">
-              Do you really want to delete the topic <strong>{topicToDelete.label}</strong>?
-              <br />This action cannot be undone.
+              Do you really want to delete the topic <strong>{topicToDelete.label}</strong>?<br />This action cannot be undone.
             </p>
             <div className="flex justify-center gap-4">
-              <button
-                className="px-4 py-2 border border-gray-300 text-gray-600 rounded-full hover:bg-gray-100"
-                onClick={() => setTopicToDelete(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
-                onClick={confirmDeleteTopic}
-              >
-                Delete
-              </button>
+              <button className="px-4 py-2 border border-gray-300 text-gray-600 rounded-full hover:bg-gray-100" onClick={() => setTopicToDelete(null)}>Cancel</button>
+              <button className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600" onClick={confirmDeleteTopic}>Delete</button>
             </div>
           </div>
         </div>
