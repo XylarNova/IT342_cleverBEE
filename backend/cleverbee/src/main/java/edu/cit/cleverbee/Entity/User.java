@@ -1,5 +1,7 @@
 package edu.cit.cleverbee.Entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -28,7 +30,26 @@ public class User {
     @Column(name = "profile_pic")
     private String profilePic = "/avatar1.png";
 
+    @Column(name = "session_count")
+    private int sessionCount = 0;
+    
+    @Column(name = "login_streak")
+    private int loginStreak = 1;
+
+  
+    @Column(name = "last_login_date")
+    private LocalDate lastLoginDate;
+
+
     // Getters and Setters
+
+    public LocalDate getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public void setLastLoginDate(LocalDate lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
+    }
 
     public Long getId() {
         return id;
@@ -85,5 +106,22 @@ public class User {
     public void setProfilePic(String profilePic) {
         this.profilePic = profilePic;
     }
+
+    public int getSessionCount() {
+        return sessionCount;
+    }
+
+    public void setSessionCount(int sessionCount) {
+        this.sessionCount = sessionCount;
+    }
+
+    public int getLoginStreak() {
+        return loginStreak;
+    }
+
+    public void setLoginStreak(int loginStreak) {
+        this.loginStreak = loginStreak;
+    }
+
 
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -47,4 +48,33 @@ public class UserService {
 
         userRepository.save(existingUser);
     }
+
+    // 🔁 Increment session count
+    public void incrementSessionCount(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setSessionCount(user.getSessionCount() + 1);
+        userRepository.save(user);
+    }
+
+// 🔥 Update login streak and last login date
+        public void updateLoginStreak(String email) {
+            User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+            LocalDate today = LocalDate.now();
+            LocalDate lastLogin = user.getLastLoginDate();
+
+            if (lastLogin == null || lastLogin.isBefore(today.minusDays(1))) {
+                // Missed a day or first login, reset streak
+                user.setLoginStreak(1);
+            } else if (lastLogin.equals(today.minusDays(1))) {
+                // Continued streak
+                user.setLoginStreak(user.getLoginStreak() + 1);
+            }
+
+            user.setLastLoginDate(today);
+            userRepository.save(user);
+        }
+
 }

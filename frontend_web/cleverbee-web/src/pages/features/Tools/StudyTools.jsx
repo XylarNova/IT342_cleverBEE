@@ -1,7 +1,20 @@
+// StudyTools.jsx (fully integrated with backend + educational comments)
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../Sidebar';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../api/api';
+
+const motivationalQuotes = [
+  "Success doesn't come from what you do occasionally, it comes from what you do consistently.",
+  "Stay focused and never give up on your dreams.",
+  "Small progress is still progress. Keep buzzing!",
+  "Your only limit is your mind. Break the hive walls!",
+  "Push yourself because no one else is going to do it for you.",
+  "It always seems impossible until it's done. Then it's honey-sweet victory!",
+  "Don't wish for it, work for it — one flap at a time.",
+  "You’re not just studying — you’re becoming unstoppable!"
+];
 
 const StudyTools = () => {
   const navigate = useNavigate();
@@ -10,26 +23,7 @@ const StudyTools = () => {
   const [streak, setStreak] = useState(1);
   const [quote, setQuote] = useState('');
 
-  const maxSessions = 100;
-
-  const motivationalQuotes = [
-    "Success doesn't come from what you do occasionally, it comes from what you do consistently.",
-    "Stay focused and never give up on your dreams.",
-    "Small progress is still progress. Keep buzzing!",
-    "Your only limit is your mind. Break the hive walls!",
-    "Push yourself because no one else is going to do it for you.",
-    "It always seems impossible until it's done. Then it's honey-sweet victory!",
-    "Don't wish for it, work for it — one flap at a time.",
-    "You are capable of more than you know. Believe and bee-lieve!",
-    "A busy bee is a productive bee. Keep flying forward!",
-    "Even the smallest bee makes a difference in the hive.",
-    "Great things come from daily buzzing effort.",
-    "Buzz through obstacles — wings were made to flap!",
-    "Turn your focus into nectar. Hard work pays off!",
-    "No flower blooms overnight. Keep pollinating your goals.",
-    "Bees don’t wait for perfect weather. They fly anyway.",
-    "You’re not just studying — you’re becoming unstoppable!"
-  ];
+  const maxSessions = 30; // Updated to a more achievable milestone
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -40,55 +34,45 @@ const StudyTools = () => {
       }
 
       try {
+        // Get user data including streak/sessionCount from backend
         const response = await api.get('/user/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         const data = response.data;
         setUser({
-          name: data.username || data.name || 'Guest',
-          profilePic: data.profilePic || '/default-avatar.png',
+          name: data.username || data.name,
+          profilePic: data.profilePic || '/default-avatar.png'
         });
+        setSessionCount(data.sessionCount || 0);
+        setStreak(data.loginStreak || 1);
+
+        // Immediately update streak on login
+        await api.patch('/user/update-streak');
       } catch (error) {
         console.error('Error fetching user data', error);
         navigate('/login');
       }
     };
 
-    // Initialize quote
-    setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
-
-    // Track session count (can increase on tool use)
-    const savedCount = parseInt(localStorage.getItem('studySessions')) || 0;
-    setSessionCount(savedCount);
-
-    // Daily streak tracking
-    const today = new Date().toDateString();
-    const lastLogin = localStorage.getItem('lastLoginDate');
-    let savedStreak = parseInt(localStorage.getItem('loginStreak')) || 1;
-
-    if (lastLogin !== today) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (new Date(lastLogin).toDateString() === yesterday.toDateString()) {
-        savedStreak += 1;
-      } else {
-        savedStreak = 1;
-      }
-      localStorage.setItem('lastLoginDate', today);
-      localStorage.setItem('loginStreak', savedStreak.toString());
-    }
-
-    setStreak(savedStreak);
     fetchUser();
+    setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
   }, [navigate]);
 
-  const progress = Math.min((sessionCount / maxSessions) * 100, 100);
+  const incrementSession = async (toolRoute) => {
+    try {
+      await api.patch('/user/increment-session'); // Backend session count
+      setSessionCount((prev) => prev + 1);
+      navigate(toolRoute);
+    } catch (error) {
+      console.error('Failed to increment session count', error);
+    }
+  };
 
+  const progress = Math.min((sessionCount / maxSessions) * 100, 100);
   const getRank = () => {
-    if (sessionCount >= 75) return "🐝 Elite Bee";
-    if (sessionCount >= 50) return "🧠 Smart Bee";
-    if (sessionCount >= 25) return "📚 Active Bee";
+    if (sessionCount >= 25) return "🐝 Elite Bee";
+    if (sessionCount >= 15) return "🧠 Smart Bee";
+    if (sessionCount >= 7) return "📚 Active Bee";
     return "🌱 New Bee";
   };
 
@@ -117,19 +101,27 @@ const StudyTools = () => {
           </div>
         </div>
 
-        {/* Motivation Widget */}
-        <section className="bg-white rounded-3xl shadow-xl p-6">
+        {/* Motivation Quote */}
+        <section className="bg-yellow-100 border-l-8 border-yellow-400 rounded-2xl p-6 shadow">
           <h2 className="text-xl font-bold text-yellow-600 mb-2">💬 Motivation of the Day</h2>
-          <p className="italic text-gray-700">"{quote}"</p>
+          <p className="italic text-gray-800 text-lg">“{quote}”</p>
         </section>
 
-        {/* Streak & Progress */}
+        {/* Progress Widget */}
         <section className="bg-white rounded-3xl shadow-xl p-8 flex flex-col md:flex-row items-center gap-10">
-          <img
-            src="/mainBee.png"
-            alt="Bee"
-            className="w-32 h-32 md:w-40 md:h-40 object-contain animate-bounce-slow"
-          />
+          {/* Animated Bee Streak */}
+          <div className="flex flex-wrap justify-center gap-1 w-40">
+            {Array.from({ length: streak }).map((_, i) => (
+              <img
+                key={i}
+                src="/mainBee.png"
+                alt="Bee"
+                className="w-10 h-10 animate-bounce"
+              />
+            ))}
+          </div>
+
+          {/* Details */}
           <div className="flex-1 space-y-2 text-center md:text-left">
             <h2 className="text-2xl font-bold text-yellow-600">📈 Study Progress</h2>
             <p className="text-gray-700 text-lg">
@@ -141,14 +133,14 @@ const StudyTools = () => {
             <p className="text-gray-700 text-lg">
               🏅 Rank: <span className="font-semibold">{getRank()}</span>
             </p>
-            <div className="w-full h-5 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+            <div className="w-full h-5 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all duration-700"
                 style={{ width: `${progress}%` }}
-              />
+              ></div>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
-              {Math.round(progress)}% toward your 100-session milestone
+            <p className="text-sm text-gray-500">
+              {Math.round(progress)}% toward your {maxSessions}-session goal
             </p>
           </div>
         </section>
@@ -157,19 +149,16 @@ const StudyTools = () => {
         <section>
           <h2 className="text-2xl font-bold text-yellow-600 mb-4">🛠️ Choose a Study Tool</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { label: 'Pomodoro Timer', image: 'pomodoro.png', color: 'from-pink-100 to-pink-200', route: '/tools/pomodoro' },
-              { label: 'Flashcards', image: 'flashcards.png', color: 'from-blue-100 to-blue-200', route: '/tools/flashcards' },
-              { label: 'Quiz', image: 'quiz.png', color: 'from-green-100 to-green-200', route: '/tools/quiz' }
-            ].map((tool) => (
+            {[{
+              label: 'Pomodoro Timer', image: 'pomodoro.png', color: 'from-pink-100 to-pink-200', route: '/tools/pomodoro'
+            }, {
+              label: 'Flashcards', image: 'flashcards.png', color: 'from-blue-100 to-blue-200', route: '/tools/flashcards'
+            }, {
+              label: 'Quiz', image: 'quiz.png', color: 'from-green-100 to-green-200', route: '/tools/quiz'
+            }].map((tool) => (
               <div
                 key={tool.label}
-                onClick={() => {
-                  const newCount = sessionCount + 1;
-                  localStorage.setItem('studySessions', newCount.toString());
-                  setSessionCount(newCount);
-                  navigate(tool.route);
-                }}
+                onClick={() => incrementSession(tool.route)}
                 className={`rounded-3xl p-6 shadow-md hover:shadow-xl bg-gradient-to-br ${tool.color} flex flex-col items-center transition-transform transform hover:scale-105 cursor-pointer`}
               >
                 <img
