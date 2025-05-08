@@ -88,7 +88,6 @@ const StudyTools = () => {
       <Sidebar />
 
       <main className="flex-1 bg-gradient-to-br from-yellow-50 to-white p-6 md:p-10 space-y-12">
-
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
@@ -116,16 +115,19 @@ const StudyTools = () => {
 
         {/* Study Progress */}
         <section className="bg-white rounded-3xl shadow-xl px-8 py-6 flex flex-col md:flex-row gap-10 items-center">
-          <div className="flex flex-wrap justify-center md:justify-start gap-1 w-40">
-            {Array.from({ length: streak }).map((_, i) => (
-              <img key={i} src="/mainBee.png" alt="Bee" className="w-10 h-10 animate-bounce" />
-            ))}
-          </div>
+          <img src="/mainBee.png" alt="Big Bee" className="w-32 h-32 md:w-40 md:h-40 object-contain animate-bounce" />
 
           <div className="flex-1 space-y-2 text-center md:text-left">
             <h2 className="text-2xl font-bold text-yellow-600">📈 Study Progress</h2>
             <p className="text-gray-800 text-lg">🎯 Sessions Completed: <b>{sessionCount}</b></p>
-            <p className="text-gray-800 text-lg">🔥 Daily Streak: <b>{streak} day{streak !== 1 ? 's' : ''}</b></p>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-800 text-lg font-medium">🔥 Daily Streak:</span>
+              <div className="flex gap-1">
+                {Array.from({ length: streak }).map((_, i) => (
+                  <img key={i} src="/mainBee.png" alt="Bee" className="w-6 h-6" />
+                ))}
+              </div>
+            </div>
             <p className="text-gray-800 text-lg">🏅 Rank: <b>{getRank()}</b></p>
             <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
               <div
