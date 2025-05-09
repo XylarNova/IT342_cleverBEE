@@ -19,14 +19,19 @@ public class UserService {
 
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Default avatar if not set
+    
         if (user.getProfilePic() == null || user.getProfilePic().isEmpty()) {
             user.setProfilePic("/avatar1.png");
         }
-
+    
+        // ✅ Set these fields to prevent null errors
+        user.setLoginStreak(1);
+        user.setSessionCount(0);
+        user.setLastLoginDate(LocalDate.now());
+    
         return userRepository.save(user);
     }
+    
 
     public Optional<User> authenticate(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
